@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  firstName    String
+  lastName     String
+  password     String
+  role         UserRole @default(EMPLOYEE)
+  department   String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+
+  recommendations Recommendation[]
+
+  @@map("users")
+}
+
+model Recommendation {
+  id                String               @id @default(cuid())
+  candidateName     String
+  candidateEmail    String
+  candidatePhone    String?
+  position          String
+  department        String
+  skills            String[]
+  experience        String               @db.Text
+  notes             String?              @db.Text
+  cvFileName        String?
+  cvFilePath        String?
+  status            RecommendationStatus @default(SUBMITTED)
+  
+
+  recommendedById   String
+  recommendedByUser User                 @relation(fields: [recommendedById], references: [id])
+  
+
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  @@map("recommendations")
+}
+
+enum UserRole {
+  EMPLOYEE
+  HR
+  ADMIN
+}
+
+enum RecommendationStatus {
+  SUBMITTED
+  IN_REVIEW
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
