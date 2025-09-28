@@ -38,12 +38,13 @@ export default defineEventHandler(async (event) => {
       { expiresIn: '30d' }
     )
 
-    setCookie(event, 'auth-token', token, {
-      maxAge: 30 * 24 * 60 * 60,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax'
-    })
+setCookie(event, 'auth-token', token, {
+  maxAge: 30 * 24 * 60 * 60, 
+  httpOnly: true,
+  secure: false, 
+  sameSite: 'lax',
+  path: '/' 
+})
 
     return {
       success: true,
@@ -65,3 +66,4 @@ export default defineEventHandler(async (event) => {
     })
   }
 })
+

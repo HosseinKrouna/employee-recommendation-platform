@@ -1,26 +1,34 @@
 <template>
   <div class="min-h-screen bg-gray-50 flex items-center justify-center">
     <div class="text-center">
-      <h1>Auth Test</h1>
-      <p>Status: {{ status }}</p>
-      <p>User: {{ data.user?.name || 'Nicht eingeloggt' }}</p>
-      <button @click="testLogin" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded">
-        Test Login
-      </button>
+      <h1 class="text-3xl font-bold text-gray-900 mb-6">
+        Employee Recommendation Platform
+      </h1>
+      
+      <div class="space-y-4">
+        <UButton @click="navigateTo('/auth/login')" size="lg" block>
+          Zur Anmeldung
+        </UButton>
+        
+        <UButton @click="navigateTo('/dashboard')" variant="outline" size="lg" block>
+          Zum Dashboard
+        </UButton>
+      </div>
+      
+      <div class="mt-8 p-4 bg-gray-100 rounded-lg">
+        <p class="text-sm text-gray-600">Debug:</p>
+        <button @click="testAuthStatus" class="text-xs bg-blue-100 px-2 py-1 rounded mt-2">
+          Auth Status testen
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-const { status, data, signIn } = useAuth()
-
-const testLogin = async () => {
-  const result = await signIn({
-    email: 'employee@testcompany.com',
-    password: 'TestPass123!'
-  })
-  console.log('Login result:', result)
+const testAuthStatus = () => {
+  const { status, data } = useAuth()
+  console.log('Current status:', status.value)
+  console.log('Current user:', data.value.user)
 }
-
-console.log('Initial status:', status.value)
 </script>
