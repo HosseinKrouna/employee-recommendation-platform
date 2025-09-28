@@ -1,15 +1,26 @@
 <template>
   <div class="min-h-screen bg-gray-50 flex items-center justify-center">
-    <div class="card max-w-md w-full mx-4">
-      <h1 class="text-2xl font-bold text-gray-900 mb-4">
-        Employee Recommendation Platform
-      </h1>
-      <p class="text-gray-600 mb-6">
-        Willkommen zur Mitarbeiterempfehlungs-Plattform
-      </p>
-      <button class="btn-primary w-full">
-        Get Started
+    <div class="text-center">
+      <h1>Auth Test</h1>
+      <p>Status: {{ status }}</p>
+      <p>User: {{ data.user?.name || 'Nicht eingeloggt' }}</p>
+      <button @click="testLogin" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded">
+        Test Login
       </button>
     </div>
   </div>
 </template>
+
+<script setup>
+const { status, data, signIn } = useAuth()
+
+const testLogin = async () => {
+  const result = await signIn({
+    email: 'employee@testcompany.com',
+    password: 'TestPass123!'
+  })
+  console.log('Login result:', result)
+}
+
+console.log('Initial status:', status.value)
+</script>

@@ -5,13 +5,23 @@ export default defineNuxtConfig({
   
   modules: [
     '@nuxt/ui'
-
   ],
 
   css: ['~/assets/css/main.css'],
 
+  typescript: {
+    typeCheck: false
+  },
+
+  // TypeScript temporär komplett deaktiviert
+  ssr: true,
+  nitro: {
+    typescript: {
+      generateTsConfig: false
+    }
+  },
+
   runtimeConfig: {
-   
     databaseUrl: process.env.DATABASE_URL,
     jwtSecret: process.env.JWT_SECRET,
     
@@ -20,9 +30,5 @@ export default defineNuxtConfig({
       supabaseUrl: process.env.SUPABASE_URL,
       supabaseAnonKey: process.env.SUPABASE_ANON_KEY
     }
-  },
-
-  typescript: {
-    typeCheck: false
   }
 })
