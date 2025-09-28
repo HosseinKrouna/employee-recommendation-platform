@@ -1,15 +1,20 @@
 <template>
   <div class="min-h-screen bg-gray-50 flex items-center justify-center">
-    <div class="card max-w-md w-full mx-4">
-      <h1 class="text-2xl font-bold text-gray-900 mb-4">
-        Employee Recommendation Platform
-      </h1>
-      <p class="text-gray-600 mb-6">
-        Willkommen zur Mitarbeiterempfehlungs-Plattform
-      </p>
-      <button class="btn-primary w-full">
-        Get Started
-      </button>
+    <div class="text-center">
+      <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+      <p class="text-gray-600">Weiterleitung...</p>
     </div>
   </div>
 </template>
+
+<script setup>
+const { status, data } = useAuth()
+
+watch(status, (newStatus) => {
+  if (newStatus === 'authenticated') {
+    navigateTo('/dashboard')
+  } else if (newStatus === 'unauthenticated') {
+    navigateTo('/auth/login')
+  }
+}, { immediate: true })
+</script>
