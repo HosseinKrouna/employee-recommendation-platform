@@ -17,6 +17,7 @@
     "@nuxt/devtools": "latest",
     "@types/bcrypt": "^6.0.0",
     "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.5.2",
     "nuxt": "^3.8.0",
     "prisma": "^6.16.2",
@@ -26,8 +27,8 @@
   "dependencies": {
     "@nuxt/ui": "^2.11.0",
     "@prisma/client": "^6.16.2",
-    "@sidebase/nuxt-auth": "^0.6.7",
     "bcrypt": "^6.0.0",
+    "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
     "pg": "^8.16.3"
   }

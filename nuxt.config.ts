@@ -4,8 +4,8 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   
   modules: [
-    '@nuxt/ui',
-    '@sidebase/nuxt-auth'
+    '@nuxt/ui'
+
   ],
 
   css: ['~/assets/css/main.css'],
@@ -14,25 +14,15 @@ export default defineNuxtConfig({
    
     databaseUrl: process.env.DATABASE_URL,
     jwtSecret: process.env.JWT_SECRET,
-    authSecret: process.env.NEXTAUTH_SECRET,
     
-  
     public: {
       appName: 'Employee Recommendation Platform',
       supabaseUrl: process.env.SUPABASE_URL,
-      supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
-      authUrl: process.env.NEXTAUTH_URL || 'http://localhost:3000'
+      supabaseAnonKey: process.env.SUPABASE_ANON_KEY
     }
   },
 
   typescript: {
     typeCheck: false
-  },
-
-  // auth: {
-  //   baseURL: process.env.NEXTAUTH_URL,
-  //   provider: {
-  //     type: 'authjs'
-  //   }
-  // }
+  }
 })
