@@ -7,19 +7,27 @@ export default defineNuxtConfig({
     '@nuxt/ui'
   ],
 
-  css: ['~/assets/css/main.css'],
+  css: ['./assets/css/main.css'],
 
   typescript: {
     typeCheck: false
   },
+    routeRules: {
+    '/api/upload/**': { 
+      cors: true,
+      headers: {
+        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+      }
+    },
+  },
 
   // TypeScript temporär komplett deaktiviert
-  ssr: true,
-  nitro: {
-    typescript: {
-      generateTsConfig: false
-    }
-  },
+  // ssr: true,
+  // nitro: {
+  //   typescript: {
+  //     generateTsConfig: false
+  //   }
+  // },
 
   runtimeConfig: {
     databaseUrl: process.env.DATABASE_URL,
