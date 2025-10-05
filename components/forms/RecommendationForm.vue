@@ -69,46 +69,51 @@
         />
       </div>
 
-      <!-- Skills -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">
-          Fähigkeiten *
-        </label>
-        <div class="flex flex-wrap gap-2 mb-2">
-          <UBadge
-            v-for="skill in form.skills"
-            :key="skill"
-            variant="soft"
-            color="primary"
-            size="sm"
-          >
-            {{ skill }}
-            <button
-              @click.prevent="removeSkill(skill)"
-              class="ml-1 text-primary-700 hover:text-primary-900"
-              :disabled="loading"
-            >
-              ×
-            </button>
-          </UBadge>
-        </div>
-        <div class="flex gap-2">
-          <UInput
-            v-model="newSkill"
-            placeholder="Neue Fähigkeit hinzufügen"
-            :disabled="loading"
-            @keyup.enter="addSkill"
-            class="flex-1"
-          />
-          <UButton
-            @click="addSkill"
-            variant="outline"
-            :disabled="loading || !newSkill.trim()"
-          >
-            Hinzufügen
-          </UButton>
-        </div>
-      </div>
+     <!-- Skills -->
+<div>
+  <label class="block text-sm font-medium text-gray-700 mb-1">
+    Fähigkeiten * (mindestens eine erforderlich)
+  </label>
+  <div class="flex flex-wrap gap-2 mb-2" v-if="form.skills.length > 0">
+    <UBadge
+      v-for="skill in form.skills"
+      :key="skill"
+      variant="soft"
+      color="primary"
+      size="sm"
+    >
+      {{ skill }}
+      <button
+        type="button"
+        @click.prevent="removeSkill(skill)"
+        class="ml-1 text-primary-700 hover:text-primary-900"
+        :disabled="loading"
+      >
+        ×
+      </button>
+    </UBadge>
+  </div>
+  <div class="flex gap-2">
+    <UInput
+      v-model="newSkill"
+      placeholder="Neue Fähigkeit hinzufügen und Enter drücken"
+      :disabled="loading"
+      @keydown.enter.prevent="addSkill"
+      class="flex-1"
+    />
+    <UButton
+      type="button"
+      @click.prevent="addSkill"
+      variant="outline"
+      :disabled="loading || !newSkill.trim()"
+    >
+      Hinzufügen
+    </UButton>
+  </div>
+  <p class="text-xs text-gray-500 mt-1">
+    Hinzugefügte Skills: {{ form.skills.length }}
+  </p>
+</div>
 
       <!-- Erfahrung -->
       <div>
