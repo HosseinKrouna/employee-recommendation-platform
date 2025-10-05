@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Upload Test</title>
+  </head>
+  <body>
+    <h1>CV Upload Test</h1>
+    <form id="uploadForm">
+      <input type="file" id="fileInput" accept=".pdf,.doc,.docx" />
+      <button type="submit">Upload</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+      document
+        .getElementById("uploadForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const fileInput = document.getElementById("fileInput");
+          const file = fileInput.files[0];
+
+          if (!file) {
+            alert("Bitte Datei auswählen");
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append("cv", file);
+
+          try {
+            const response = await fetch(
+              "http://localhost:3000/api/upload/cv",
+              {
+                method: "POST",
+                body: formData,
+              }
+            );
+
+            const result = await response.json();
+            document.getElementById("result").innerHTML =
+              "<pre>" + JSON.stringify(result, null, 2) + "</pre>";
+          } catch (error) {
+            console.error("Error:", error);
+            document.getElementById("result").innerHTML =
+              '<p style="color: red;">Error: ' + error.message + "</p>";
+          }
+        });
+    </script>
+  </body>
+</html>
