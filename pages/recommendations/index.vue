@@ -3,7 +3,11 @@
     <div class="max-w-7xl mx-auto px-4">
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-bold text-gray-900">Meine Empfehlungen</h1>
-        <UButton @click="navigateTo('/recommendations/create')" icon="i-heroicons-plus">
+        <UButton 
+          v-if="data?.user?.role !== 'HR'"
+          @click="navigateTo('/recommendations/create')" 
+          icon="i-heroicons-plus"
+        >
           Neue Empfehlung
         </UButton>
       </div>
@@ -19,6 +23,11 @@
 </template>
 
 <script setup>
+definePageMeta({
+  middleware: ['recommendations']
+})
+
+const { data } = useAuth()
 const loading = ref(true)
 const recommendations = ref([])
 
@@ -36,7 +45,6 @@ const fetchRecommendations = async () => {
 
 const handleView = (recommendation) => {
   console.log('View recommendation:', recommendation)
-  // TODO: Navigieren zu einer Detailsseite oder Modal
 }
 
 onMounted(() => {

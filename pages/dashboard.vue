@@ -183,6 +183,11 @@
 </template>
 
 <script setup>
+
+definePageMeta({
+  middleware: ['auth']
+})
+
 const { data, signOut } = useAuth()
 
 const recommendationsLoading = ref(true)

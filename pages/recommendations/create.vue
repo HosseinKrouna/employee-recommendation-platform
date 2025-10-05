@@ -13,7 +13,12 @@
 </template>
 
 <script setup>
+definePageMeta({
+  middleware: ['recommendations']
+})
+
 const handleSubmitted = (recommendation) => {
   console.log('Empfehlung eingereicht:', recommendation)
+  setTimeout(() => navigateTo('/recommendations'), 2000)
 }
 </script>
