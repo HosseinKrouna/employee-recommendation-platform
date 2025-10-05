@@ -172,7 +172,7 @@
 
 <script setup>
 definePageMeta({
-  middleware: ['auth']
+  middleware: ['hr'] 
 })
 
 const { data, signOut } = useAuth()
