@@ -32,6 +32,14 @@ export default defineNuxtConfig({
   runtimeConfig: {
     databaseUrl: process.env.DATABASE_URL,
     jwtSecret: process.env.JWT_SECRET,
+
+    
+    emailFrom: process.env.EMAIL_FROM || 'noreply@company.com',
+    emailFromName: process.env.EMAIL_FROM_NAME || 'Employee Recommendation Platform',
+    smtpHost: process.env.SMTP_HOST || '',
+    smtpPort: process.env.SMTP_PORT || '587',
+    smtpUser: process.env.SMTP_USER || '',
+    smtpPass: process.env.SMTP_PASS || '',
     
     public: {
       appName: 'Employee Recommendation Platform',
