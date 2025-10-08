@@ -1,5 +1,6 @@
 import { prisma } from '../../../utils/prisma'
 import jwt from 'jsonwebtoken'
+import { sendEmail, generateStatusUpdateEmail } from '../../../utils/email'
 
 export default defineEventHandler(async (event) => {
   const recommendationId = getRouterParam(event, 'id')
@@ -66,6 +67,27 @@ export default defineEventHandler(async (event) => {
         }
       }
     })
+
+    if (['IN_REVIEW', 'APPROVED', 'REJECTED'].includes(status)) {
+      try {
+        const emailContent = generateStatusUpdateEmail({
+          candidateName: recommendation.candidateName,
+          status: status,
+          employeeName: recommendation.recommendedByUser.firstName
+        })
+
+        await sendEmail({
+          to: recommendation.recommendedByUser.email,
+          subject: emailContent.subject,
+          html: emailContent.html
+        })
+
+        console.log(`✅ Status update email sent to ${recommendation.recommendedByUser.email}`)
+      } catch (emailError) {
+        console.error('Failed to send status update email:', emailError)
+      }
+    }
+
 
     return {
       success: true,

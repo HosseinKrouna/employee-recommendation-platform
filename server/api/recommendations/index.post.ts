@@ -1,5 +1,7 @@
 import { prisma } from '~/server/utils/prisma'
 import jwt from 'jsonwebtoken'
+import { sendEmail, generateNewRecommendationEmail } from '~/server/utils/email'
+
 
 export default defineEventHandler(async (event) => {
 
@@ -45,7 +47,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  try {
+    try {
+    console.log('Creating recommendation in database...')
     const recommendation = await prisma.recommendation.create({
       data: {
         candidateName,
@@ -72,6 +75,45 @@ export default defineEventHandler(async (event) => {
         }
       }
     })
+    
+    console.log('Recommendation created successfully:', recommendation.id)
+
+   
+    try {
+      
+      const hrUsers = await prisma.user.findMany({
+        where: {
+          role: 'HR',
+          isActive: true
+        },
+        select: {
+          email: true
+        }
+      })
+
+     
+      const emailContent = generateNewRecommendationEmail({
+        candidateName: recommendation.candidateName,
+        position: recommendation.position,
+        department: recommendation.department,
+        recommendedBy: `${recommendation.recommendedByUser.firstName} ${recommendation.recommendedByUser.lastName}`,
+        recommendationId: recommendation.id
+      })
+
+     
+      for (const hrUser of hrUsers) {
+        await sendEmail({
+          to: hrUser.email,
+          subject: emailContent.subject,
+          html: emailContent.html
+        })
+      }
+
+      console.log(`✅ Notification emails sent to ${hrUsers.length} HR users`)
+    } catch (emailError) {
+     
+      console.error('Failed to send notification email:', emailError)
+    }
 
     return {
       success: true,
@@ -79,6 +121,7 @@ export default defineEventHandler(async (event) => {
     }
   } catch (error) {
     console.error('Recommendation creation error:', error)
+    console.error('Error details:', JSON.stringify(error, null, 2))
     throw createError({
       statusCode: 500,
       statusMessage: 'Fehler beim Erstellen der Empfehlung'
