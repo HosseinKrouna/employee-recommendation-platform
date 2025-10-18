@@ -14,7 +14,7 @@ watch(status, (newStatus) => {
   if (newStatus === 'authenticated') {
     navigateTo('/dashboard')
   } else if (newStatus === 'unauthenticated') {
-    navigateTo('/auth/login')
+    navigateTo('/login')
   }
 }, { immediate: true })
 </script>

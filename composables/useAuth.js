@@ -7,29 +7,34 @@ const globalAuthState = ref({
 })
 
 export const useAuth = () => {
-  const signIn = async (credentials) => {
-    try {
-      const data = await $fetch('/api/auth/login', {
-        method: 'POST',
-        body: credentials
-      })
+
+ const signIn = async (credentials) => {
+  try {
+    const data = await $fetch('/api/auth/login', {
+      method: 'POST',
+      body: credentials
+    })
+    
+    if (data?.user) {
+      globalAuthState.value.user = data.user
+      globalAuthState.value.loading = false
       
-      if (data?.user) {
-        globalAuthState.value.user = data.user
-        globalAuthState.value.loading = false
+      if (import.meta.client) {
+        localStorage.setItem('user', JSON.stringify(data.user))
+        localStorage.setItem('token', data.token)
         
-        if (import.meta.client) {
-          localStorage.setItem('user', JSON.stringify(data.user))
-        }
-      }
-      
-      return { error: null }
-    } catch (error) {
-      return { 
-        error: error.data?.statusMessage || 'Login fehlgeschlagen' 
+       
+        console.log('Token saved:', data.token)
       }
     }
+    
+    return { error: null }
+  } catch (error) {
+    return { 
+      error: error.data?.statusMessage || 'Login fehlgeschlagen' 
+    }
   }
+}
 
   const signOut = async () => {
     try {
@@ -39,49 +44,62 @@ export const useAuth = () => {
       
       if (import.meta.client) {
         localStorage.removeItem('user')
+        localStorage.removeItem('token')
       }
-      await navigateTo('/auth/login')
+      await navigateTo('/login')
     } catch (error) {
       console.error('Logout error:', error)
     }
   }
 
-  const fetchUser = async () => {
-    try {
-      globalAuthState.value.loading = true
-      
-      const data = await $fetch('/api/auth/me')
-      globalAuthState.value.user = data.user
-      
-      if (import.meta.client) {
-        localStorage.setItem('user', JSON.stringify(data.user))
-      }
-    } catch (error) {
-      console.log('Cookie auth failed, trying localStorage...')
-      
-      if (import.meta.client) {
-        const savedUser = localStorage.getItem('user')
-        if (savedUser) {
-          try {
-            const user = JSON.parse(savedUser)
-            globalAuthState.value.user = user
-            console.log('Loaded user from localStorage:', user.name)
-          } catch (e) {
-            localStorage.removeItem('user')
-            globalAuthState.value.user = null
-          }
-        } else {
+ const fetchUser = async () => {
+  try {
+    globalAuthState.value.loading = true
+    
+    
+    const token = import.meta.client ? localStorage.getItem('token') : null
+    
+    const headers = {}
+    if (token) {
+      headers.Authorization = `Bearer ${token}`
+    }
+    
+    const data = await $fetch('/api/auth/me', {
+      headers  
+    })
+    
+    globalAuthState.value.user = data.user
+    
+    if (import.meta.client) {
+      localStorage.setItem('user', JSON.stringify(data.user))
+    }
+  } catch (error) {
+    console.log('Cookie auth failed, trying localStorage...')
+    
+    if (import.meta.client) {
+      const savedUser = localStorage.getItem('user')
+      if (savedUser) {
+        try {
+          const user = JSON.parse(savedUser)
+          globalAuthState.value.user = user
+          console.log('Loaded user from localStorage:', user.name)
+        } catch (e) {
+          localStorage.removeItem('user')
+          localStorage.removeItem('token')
           globalAuthState.value.user = null
         }
+      } else {
+        globalAuthState.value.user = null
       }
-    } finally {
-      globalAuthState.value.loading = false
-      console.log('Final auth state:', {
-        user: globalAuthState.value.user?.name || 'null',
-        loading: globalAuthState.value.loading
-      })
     }
+  } finally {
+    globalAuthState.value.loading = false
+    console.log('Final auth state:', {
+      user: globalAuthState.value.user?.name || 'null',
+      loading: globalAuthState.value.loading
+    })
   }
+}
 
   const status = computed(() => {
     if (globalAuthState.value.loading) return 'loading'

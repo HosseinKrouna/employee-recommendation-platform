@@ -3,7 +3,7 @@ export default defineNuxtRouteMiddleware((to) => {
   
   // Nicht authentifiziert -> Login
   if (status.value === 'unauthenticated') {
-    return navigateTo('/auth/login')
+    return navigateTo('/login')
   }
   
   // HR darf keine Empfehlungen erstellen

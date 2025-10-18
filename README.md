@@ -4,40 +4,41 @@ A modern, web-based platform for managing employee referrals. The system enables
 
 ## Table of Contents
 
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Prerequisites](#-prerequisites)
-- [Installation](#-installation)
-- [Configuration](#-configuration)
-- [Development](#-development)
-- [Database](#-database)
-- [Email Notifications](#-email-notifications)
-- [Deployment](#-deployment)
-- [Project Structure](#-project-structure)
-- [API Documentation](#-api-documentation)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Development](#development)
+- [Database](#database)
+- [Email Notifications](#email-notifications)
+- [UI Components & Styling](#ui-components--styling)
+- [Deployment](#deployment)
+- [API Documentation](#api-documentation)
+- [Contributing](#contributing)
 
 ## Features
 
 ### For Employees
 - Personal dashboard with overview of all recommendations
-- Submit new recommendations with detaild form
-- CV upload for candidates
+- Submit new recommendations with detailed form
+- CV upload for candidates (PDF, DOCX, etc.)
 - Skills management with percentage levels
-- Status tracking of own recommendations
-- Email notifcations on status changes
+- Real-time status tracking of own recommendations
+- Email notifications on status changes
 
 ### For HR Managers
 - Central HR dashboard with all recommendations
-- Filter and search functionality
-- tatus management (Submitted, In Review, Approved, Rejected)
-- Detail view with complete candidate information
+- Advanced filter and search functionality
+- Status management (Submitted, In Review, Approved, Rejected)
+- Detailed view with complete candidate information
 - CV download and preview functionality
 - Email notifications for new recommendations
-- Statistics and overviews
+- Statistics and overview metrics
 
 ### For Administrators
 - User management
-- System overview
+- System overview and configuration
 - Access to all features
 
 ## Tech Stack
@@ -46,21 +47,21 @@ A modern, web-based platform for managing employee referrals. The system enables
 - **Nuxt 3** - Vue.js framework with SSR/SSG
 - **Vue 3** - Progressive JavaScript framework
 - **TypeScript** - Type-safe JavaScript
-- **Tailwind CSS** - Utility-first CSS framework
+- **Tailwind CSS** - Utility-first CSS framework with custom classes
 - **Pinia** - State management
 
 ### Backend
-- **Nuxt Server** - API routes
+- **Nuxt Server** - API routes and server middleware
 - **Prisma** - ORM for database access
 - **PostgreSQL** - Relational database
-- **JWT** - Authentication
-- **Nodemailer** - Email delivery
+- **JWT** - Secure authentication
+- **Nodemailer** - Email delivery system
 
 ### Tools & Services
 - **Git** - Version control
-- **Ethereal Email** - Test SMTP (development)
+- **Ethereal Email** - Test SMTP for development
 - **ESLint** - Code linting
-- **Prettier** - Code formatting (optional)
+- **Prettier** - Code formatting
 
 ## Prerequisites
 
@@ -92,7 +93,7 @@ Create a `.env` file in the root directory:
 cp .env.example .env
 ```
 
-Fill the `.env` with your values (see [Configuration](#-configuration)).
+Fill the `.env` with your values (see [Configuration](#configuration)).
 
 ### 4. Setup database
 
@@ -160,7 +161,13 @@ SMTP_PASS="your-sendgrid-api-key"
 ```
 
 **Option 3: AWS SES, Mailgun, etc.**
-(Enter corresponding credentials)
+```bash
+# Enter corresponding credentials
+SMTP_HOST="email-smtp.region.amazonaws.com"
+SMTP_PORT="587"
+SMTP_USER="your-ses-username"
+SMTP_PASS="your-ses-password"
+```
 
 ## Development
 
@@ -192,7 +199,7 @@ npm run type-check
 ### Git Workflow
 
 ```bash
-# Develop new feature
+# Create new feature branch
 git checkout -b feature/feature-name
 
 # Make commits
@@ -207,6 +214,16 @@ git merge feature/feature-name
 git push origin main
 ```
 
+### Commit Conventions
+
+- `feat:` - New feature
+- `fix:` - Bug fix
+- `docs:` - Documentation
+- `style:` - Code formatting
+- `refactor:` - Code refactoring
+- `test:` - Add tests
+- `chore:` - Maintenance
+
 ## Database
 
 ### Schema
@@ -214,7 +231,7 @@ git push origin main
 The database consists of the following main tables:
 
 - **User** - Users (Employee, HR, Admin)
-- **Recommendation** - Recommendations
+- **Recommendation** - Candidate recommendations with skills and CV
 - **Session** - Login sessions (optional)
 
 ### Prisma Commands
@@ -256,31 +273,119 @@ After seeding, the following test users are available:
 
 ### Development (Ethereal Test SMTP)
 
-In development, emails are sent via **Ethereal** (test SMTP).
+In development mode, emails are sent via **Ethereal** (free test SMTP service).
 Preview URLs appear in the server terminal:
 
 ```bash
 📧 Email sent! Preview URL: https://ethereal.email/message/...
 ```
 
-Copy the URL and open it in your browser to view the email.
+Copy the URL and open it in your browser to view the email content.
 
 ### Email Types
 
-**1. New Recommendation → HR**
-- Sent when an employee submits a new recommendation
-- Recipients: All active HR managers
-- Content: Candidate details, recommender, link to dashboard
+**1. New Recommendation → HR Managers**
+- **Trigger:** Employee submits a new recommendation
+- **Recipients:** All active HR managers
+- **Content:** 
+  - Candidate name and position
+  - Recommender information
+  - Skills overview
+  - Direct link to HR dashboard
 
 **2. Status Update → Employee**
-- Sent when HR changes the status
-- Recipient: The recommending employee
-- Content: New status, candidate name, link to recommendations
-- Triggers: IN_REVIEW, APPROVED, REJECTED
+- **Trigger:** HR changes recommendation status
+- **Recipient:** The recommending employee
+- **Content:**
+  - New status (In Review, Approved, or Rejected)
+  - Candidate name
+  - Direct link to recommendation details
+- **Triggers on:** `IN_REVIEW`, `APPROVED`, `REJECTED`
+
+### Email Testing
+
+```bash
+# 1. Start development server
+npm run dev
+
+# 2. Login as employee (john.doe@testcompany.com)
+# 3. Submit a new recommendation
+# 4. Check terminal for HR notification preview URL
+
+# 5. Login as HR (hr@testcompany.com)
+# 6. Change recommendation status
+# 7. Check terminal for employee notification preview URL
+```
 
 ### Production Setup
 
-For production, you must set the SMTP credentials in `.env` (see [Configuration](#-configuration)).
+For production, configure real SMTP credentials in `.env`:
+
+1. Choose an email service provider (SendGrid, Gmail, AWS SES)
+2. Set `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`
+3. Test email delivery in staging environment
+4. Configure SPF/DKIM records (optional, improves deliverability)
+
+## UI Components & Styling
+
+The platform uses a centralized CSS system for consistent styling across all components.
+
+### Available CSS Classes
+
+**Cards:**
+- `.card` - Standard card with shadow and border
+- `.card-highlight` - Highlighted card with gradient border
+
+**Buttons:**
+- `.btn-primary` - Primary action button (indigo)
+- `.btn-secondary` - Secondary action button (gray)
+- `.btn-outline` - Outlined button (transparent)
+
+**Inputs:**
+- `.input` - Standard input field
+- `.textarea` - Textarea field
+- `.select` - Select dropdown
+
+**Typography:**
+- `.text-primary` - Primary text (white)
+- `.text-secondary` - Secondary text (gray-300)
+- `.text-muted` - Muted text (gray-400)
+- `.heading-1` - Main heading
+- `.heading-2` - Section heading
+- `.heading-3` - Subsection heading
+
+**Status Badges:**
+- `.badge-status-submitted` - Blue badge
+- `.badge-status-review` - Yellow badge
+- `.badge-status-approved` - Green badge
+- `.badge-status-rejected` - Red badge
+
+**Tables:**
+- `.table-container` - Scrollable table wrapper
+- `.table` - Main table
+- `.table-header` - Table header cell
+- `.table-cell` - Table data cell
+
+### Usage Example
+
+```vue
+<template>
+  <div class="card">
+    <h2 class="heading-2">My Recommendations</h2>
+    
+    <button class="btn-primary">
+      New Recommendation
+    </button>
+    
+    <input class="input" placeholder="Search..." />
+    
+    <h3 class="text-primary">{{ recommendation.candidateName }}</h3>
+    <p class="text-muted">{{ recommendation.position }}</p>
+    
+    <span class="badge-status-approved">Approved</span>
+  </div>
+</template>
+```
 
 ## Deployment
 
@@ -301,15 +406,15 @@ npx prisma generate
 
 Ensure the following variables are set:
 
--  `DATABASE_URL` - Production database
--  `JWT_SECRET` - Strong, random secret
--  `SMTP_*` - Real email credentials
--  `BASE_URL` - Production URL
--  `NODE_ENV=production`
+- `DATABASE_URL` - Production database connection
+- `JWT_SECRET` - Strong, random secret (min. 32 characters)
+- `SMTP_*` - Real email credentials
+- `BASE_URL` - Production URL (e.g., https://yourdomain.com)
+- `NODE_ENV=production`
 
 ### Deployment Options
 
-**Option 1: Vercel**
+**Option 1: Vercel (Recommended)**
 ```bash
 npm install -g vercel
 vercel --prod
@@ -333,7 +438,6 @@ pm2 start npm --name "employee-platform" -- start
 pm2 startup
 pm2 save
 ```
-
 
 ## API Documentation
 
@@ -375,7 +479,8 @@ pm2 save
     { "name": "Vue.js", "level": 85 }
   ],
   "experience": "5 years",
-  "notes": "Excellent candidate"
+  "notes": "Excellent candidate",
+  "cvPath": "/uploads/cv_123456.pdf"
 }
 ```
 
@@ -383,6 +488,7 @@ pm2 save
 - Headers: `Authorization: Bearer <token>`
 
 **PUT** `/api/recommendations/:id/status`
+- Headers: `Authorization: Bearer <token>`
 ```json
 {
   "status": "APPROVED"
@@ -398,6 +504,7 @@ pm2 save
 **POST** `/api/upload/cv`
 - Content-Type: `multipart/form-data`
 - Body: `file` (form data)
+- Returns: `{ cvPath: string }`
 
 ## Contributing
 
@@ -407,30 +514,22 @@ pm2 save
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a pull request
 
-### Commit Conventions
-
-- `feat:` - New feature
-- `fix:` - Bug fix
-- `docs:` - Documentation
-- `style:` - Code formatting
-- `refactor:` - Code refactoring
-- `test:` - Add tests
-- `chore:` - Maintenance
-
 ## License
 
 This project is private and not intended for public use.
 
-## Authors
+## Author
 
-- **Hossein Krouna**
-  
+**Hossein Krouna**
+- GitHub: [@HosseinKrouna](https://github.com/HosseinKrouna)
+
 ## Acknowledgments
 
 - Anthropic Claude for development support
 - Nuxt.js Community
 - Vue.js Team
 - Prisma Team
+- Tailwind CSS Team
 
 ---
 

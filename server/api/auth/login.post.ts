@@ -38,13 +38,13 @@ export default defineEventHandler(async (event) => {
       { expiresIn: '30d' }
     )
 
-setCookie(event, 'auth-token', token, {
-  maxAge: 30 * 24 * 60 * 60, 
-  httpOnly: true,
-  secure: false, 
-  sameSite: 'lax',
-  path: '/' 
-})
+    setCookie(event, 'auth-token', token, {
+      maxAge: 30 * 24 * 60 * 60, 
+      httpOnly: true,
+      secure: false, 
+      sameSite: 'lax',
+      path: '/' 
+    })
 
     return {
       success: true,
@@ -56,7 +56,8 @@ setCookie(event, 'auth-token', token, {
         lastName: user.lastName,
         role: user.role,
         department: user.department
-      }
+      },
+      token
     }
   } catch (error) {
     console.error('Auth error:', error)
@@ -66,4 +67,3 @@ setCookie(event, 'auth-token', token, {
     })
   }
 })
-

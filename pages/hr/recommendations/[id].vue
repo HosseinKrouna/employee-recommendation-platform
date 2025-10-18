@@ -1,0 +1,429 @@
+<template>
+  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+      <!-- Loading State -->
+      <div v-if="loading" class="flex flex-col items-center justify-center py-20">
+        <div class="relative">
+          <div class="animate-spin rounded-full h-16 w-16 border-4 border-gray-700"></div>
+          <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-indigo-500 absolute top-0"></div>
+        </div>
+        <p class="mt-6 text-gray-400 text-lg">Empfehlung wird geladen...</p>
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="error" class="max-w-2xl mx-auto">
+        <div class="bg-red-900/30 border-l-4 border-red-500 rounded-lg p-6 shadow-lg backdrop-blur-sm">
+          <div class="flex items-center">
+            <svg class="h-6 w-6 text-red-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="text-red-200 font-medium">{{ error }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recommendation Details -->
+      <div v-else-if="recommendation" class="space-y-6">
+        <!-- Back Button & Header -->
+        <div class="mb-8">
+          <NuxtLink 
+            to="/hr/dashboard" 
+            class="inline-flex items-center text-indigo-400 hover:text-indigo-300 font-medium transition-colors group mb-6"
+          >
+            <svg class="h-5 w-5 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Zurück zum Dashboard
+          </NuxtLink>
+          
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 class="text-4xl font-bold text-white mb-2">{{ recommendation.candidateName }}</h1>
+              <div class="flex items-center gap-3 text-lg text-gray-400">
+                <span class="flex items-center">
+                  <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  {{ recommendation.position }}
+                </span>
+                <span class="text-gray-600">•</span>
+                <span class="flex items-center">
+                  <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  {{ recommendation.department }}
+                </span>
+              </div>
+            </div>
+            <div>
+              <span :class="statusClassLarge(recommendation.status)" class="inline-flex items-center px-6 py-3 rounded-full text-base font-semibold shadow-lg">
+                <span :class="statusDot(recommendation.status)" class="h-3 w-3 rounded-full mr-3 animate-pulse"></span>
+                {{ statusText(recommendation.status) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Left Column - Main Info -->
+          <div class="lg:col-span-2 space-y-6">
+            <!-- Candidate Information Card -->
+            <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden border border-gray-700 hover:border-indigo-500/50 transition-all">
+              <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
+                <h2 class="text-xl font-bold text-white flex items-center">
+                  <svg class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  Kandidaten-Informationen
+                </h2>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="group">
+                    <div class="flex items-start">
+                      <div class="flex-shrink-0">
+                        <div class="h-10 w-10 rounded-lg bg-indigo-500/20 flex items-center justify-center group-hover:bg-indigo-500/30 transition-colors border border-indigo-500/30">
+                          <svg class="h-5 w-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-400">E-Mail</p>
+                        <a :href="`mailto:${recommendation.candidateEmail}`" class="text-base font-semibold text-white hover:text-indigo-400 transition-colors">
+                          {{ recommendation.candidateEmail }}
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="group">
+                    <div class="flex items-start">
+                      <div class="flex-shrink-0">
+                        <div class="h-10 w-10 rounded-lg bg-green-500/20 flex items-center justify-center group-hover:bg-green-500/30 transition-colors border border-green-500/30">
+                          <svg class="h-5 w-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-400">Telefon</p>
+                        <a v-if="recommendation.candidatePhone" :href="`tel:${recommendation.candidatePhone}`" class="text-base font-semibold text-white hover:text-green-400 transition-colors">
+                          {{ recommendation.candidatePhone }}
+                        </a>
+                        <p v-else class="text-base text-gray-500">Nicht angegeben</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="group">
+                    <div class="flex items-start">
+                      <div class="flex-shrink-0">
+                        <div class="h-10 w-10 rounded-lg bg-purple-500/20 flex items-center justify-center group-hover:bg-purple-500/30 transition-colors border border-purple-500/30">
+                          <svg class="h-5 w-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-400">Erfahrung</p>
+                        <p class="text-base font-semibold text-white">{{ recommendation.experience || 'Nicht angegeben' }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="group">
+                    <div class="flex items-start">
+                      <div class="flex-shrink-0">
+                        <div class="h-10 w-10 rounded-lg bg-blue-500/20 flex items-center justify-center group-hover:bg-blue-500/30 transition-colors border border-blue-500/30">
+                          <svg class="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-400">Eingereicht am</p>
+                        <p class="text-base font-semibold text-white">{{ formatDate(recommendation.createdAt) }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-if="recommendation.notes" class="mt-6 pt-6 border-t border-gray-700">
+                  <div class="flex items-start">
+                    <svg class="h-5 w-5 text-gray-500 mt-1 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                    </svg>
+                    <div class="flex-1">
+                      <p class="text-sm font-medium text-gray-400 mb-2">Notizen</p>
+                      <p class="text-gray-300 leading-relaxed">{{ recommendation.notes }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Skills Card -->
+            <div v-if="recommendation.skills && recommendation.skills.length > 0" class="bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden border border-gray-700 hover:border-purple-500/50 transition-all">
+              <div class="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4">
+                <h2 class="text-xl font-bold text-white flex items-center">
+                  <svg class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                  Fähigkeiten & Expertise
+                </h2>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div v-for="skill in recommendation.skills" :key="skill.name" class="group">
+                    <div class="flex justify-between items-center mb-2">
+                      <span class="font-semibold text-gray-200 group-hover:text-purple-400 transition-colors">{{ skill.name }}</span>
+                      <span class="text-sm font-bold text-purple-400 bg-purple-500/20 px-3 py-1 rounded-full border border-purple-500/30">{{ skill.level }}%</span>
+                    </div>
+                    <div class="relative w-full bg-gray-700/50 rounded-full h-3 overflow-hidden shadow-inner border border-gray-600">
+                      <div 
+                        class="absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ease-out"
+                        :class="getSkillColor(skill.level)"
+                        :style="`width: ${skill.level}%`"
+                      >
+                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-20 animate-shimmer"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- CV Section -->
+            <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden border border-gray-700 hover:border-blue-500/50 transition-all">
+              <div class="bg-gradient-to-r from-blue-600 to-cyan-600 px-6 py-4">
+                <h2 class="text-xl font-bold text-white flex items-center">
+                  <svg class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Lebenslauf (CV)
+                </h2>
+              </div>
+              <div class="p-6">
+                <CvViewer
+                  :recommendation-id="recommendation.id"
+                  :candidate-name="recommendation.candidateName"
+                  :cv-path="recommendation.cvFilePath"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column - Sidebar -->
+          <div class="space-y-6">
+            <!-- Recommended By Card -->
+            <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden border border-gray-700 hover:border-green-500/50 transition-all">
+              <div class="bg-gradient-to-r from-green-600 to-teal-600 px-6 py-4">
+                <h2 class="text-xl font-bold text-white flex items-center">
+                  <svg class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                  Empfohlen von
+                </h2>
+              </div>
+              <div class="p-6">
+                <div class="flex flex-col items-center text-center">
+                  <div class="relative">
+                    <div class="h-20 w-20 rounded-full bg-gradient-to-br from-green-400 to-teal-500 flex items-center justify-center shadow-lg ring-4 ring-gray-700">
+                      <span class="text-white font-bold text-2xl">
+                        {{ recommendation.recommendedByUser.firstName[0] }}{{ recommendation.recommendedByUser.lastName[0] }}
+                      </span>
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 h-6 w-6 bg-green-500 rounded-full border-2 border-gray-800 flex items-center justify-center">
+                      <svg class="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+                  <h3 class="mt-4 text-lg font-bold text-white">
+                    {{ recommendation.recommendedByUser.firstName }} {{ recommendation.recommendedByUser.lastName }}
+                  </h3>
+                  <p class="text-sm text-gray-400 mt-1">{{ recommendation.recommendedByUser.department }}</p>
+                  <a :href="`mailto:${recommendation.recommendedByUser.email}`" class="mt-2 text-sm text-indigo-400 hover:text-indigo-300 font-medium">
+                    {{ recommendation.recommendedByUser.email }}
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Status Update Card -->
+            <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden border border-gray-700 hover:border-orange-500/50 transition-all">
+              <div class="bg-gradient-to-r from-orange-600 to-red-600 px-6 py-4">
+                <h2 class="text-xl font-bold text-white flex items-center">
+                  <svg class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                  Status aktualisieren
+                </h2>
+              </div>
+              <div class="p-6 space-y-3">
+                <button
+                  v-for="status in availableStatuses"
+                  :key="status.value"
+                  @click="updateStatus(status.value)"
+                  :disabled="updatingStatus"
+                  :class="[
+                    'w-full px-4 py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-between group',
+                    recommendation.status === status.value
+                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg transform scale-105 border border-indigo-500'
+                      : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50 hover:shadow-md hover:scale-102 border border-gray-600'
+                  ]"
+                >
+                  <span class="flex items-center">
+                    <span :class="statusDot(status.value)" class="h-2.5 w-2.5 rounded-full mr-3"></span>
+                    {{ status.label }}
+                  </span>
+                  <svg v-if="recommendation.status === status.value" class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import CvViewer from '~/components/ui/CvViewer.vue'
+
+const route = useRoute()
+const router = useRouter()
+
+const recommendation = ref<any>(null)
+const loading = ref(true)
+const error = ref('')
+const updatingStatus = ref(false)
+
+const availableStatuses = [
+  { value: 'SUBMITTED', label: 'Eingereicht' },
+  { value: 'IN_REVIEW', label: 'In Prüfung' },
+  { value: 'APPROVED', label: 'Genehmigt' },
+  { value: 'REJECTED', label: 'Abgelehnt' }
+]
+
+const statusClassLarge = (status: string) => {
+  const classes: Record<string, string> = {
+    SUBMITTED: 'bg-blue-500/20 text-blue-300 border-2 border-blue-500/50',
+    IN_REVIEW: 'bg-yellow-500/20 text-yellow-300 border-2 border-yellow-500/50',
+    APPROVED: 'bg-green-500/20 text-green-300 border-2 border-green-500/50',
+    REJECTED: 'bg-red-500/20 text-red-300 border-2 border-red-500/50'
+  }
+  return classes[status] || 'bg-gray-500/20 text-gray-300 border-2 border-gray-500/50'
+}
+
+const statusDot = (status: string) => {
+  const colors: Record<string, string> = {
+    SUBMITTED: 'bg-blue-400',
+    IN_REVIEW: 'bg-yellow-400',
+    APPROVED: 'bg-green-400',
+    REJECTED: 'bg-red-400'
+  }
+  return colors[status] || 'bg-gray-400'
+}
+
+const statusText = (status: string) => {
+  const texts: Record<string, string> = {
+    SUBMITTED: 'Eingereicht',
+    IN_REVIEW: 'In Prüfung',
+    APPROVED: 'Genehmigt',
+    REJECTED: 'Abgelehnt'
+  }
+  return texts[status] || status
+}
+
+const getSkillColor = (level: number) => {
+  if (level >= 80) return 'bg-gradient-to-r from-green-500 to-emerald-500'
+  if (level >= 60) return 'bg-gradient-to-r from-blue-500 to-cyan-500'
+  if (level >= 40) return 'bg-gradient-to-r from-yellow-500 to-orange-500'
+  return 'bg-gradient-to-r from-red-500 to-pink-500'
+}
+
+const formatDate = (date: string) => {
+  return new Date(date).toLocaleDateString('de-DE', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
+
+const fetchRecommendation = async () => {
+  loading.value = true
+  error.value = ''
+
+  try {
+    const token = localStorage.getItem('token')
+    const response = await fetch(`/api/recommendations/${route.params.id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error('Fehler beim Laden der Empfehlung')
+    }
+
+    const data = await response.json()
+    recommendation.value = data.recommendation
+  } catch (err: any) {
+    error.value = err.message || 'Fehler beim Laden der Empfehlung'
+  } finally {
+    loading.value = false
+  }
+}
+
+const updateStatus = async (newStatus: string) => {
+  if (!confirm(`Status wirklich auf "${statusText(newStatus)}" ändern?`)) {
+    return
+  }
+
+  updatingStatus.value = true
+
+  try {
+    const token = localStorage.getItem('token')
+    const response = await fetch(`/api/recommendations/${route.params.id}/status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ status: newStatus })
+    })
+
+    if (!response.ok) {
+      throw new Error('Fehler beim Aktualisieren des Status')
+    }
+
+    const data = await response.json()
+    recommendation.value = data.recommendation
+    alert('Status erfolgreich aktualisiert!')
+  } catch (err: any) {
+    alert(err.message || 'Fehler beim Aktualisieren des Status')
+  } finally {
+    updatingStatus.value = false
+  }
+}
+
+onMounted(() => {
+  fetchRecommendation()
+})
+</script>
+
+<style scoped>
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+</style>

@@ -19,18 +19,17 @@
         :key="recommendation.id"
         class="card hover:shadow-md transition-shadow"
       >
-        <div class="flex justify-between items-start mb-4">
-          <div>
-            <h3 class="text-xl font-semibold text-gray-900">
-              {{ recommendation.candidateName }}
-            </h3>
-            <p class="text-sm text-gray-600">{{ recommendation.position }}</p>
-          </div>
-          <UBadge :color="getStatusColor(recommendation.status)" variant="soft">
-            {{ getStatusLabel(recommendation.status) }}
-          </UBadge>
-        </div>
-
+  <div class="flex justify-between items-start mb-4">
+  <div>
+    <h3 class="text-xl font-bold text-white">
+      {{ recommendation.candidateName }}
+    </h3>
+    <p class="text-sm text-gray-400">{{ recommendation.position }}</p>
+  </div>
+  <UBadge :color="getStatusColor(recommendation.status)" variant="soft">
+    {{ getStatusLabel(recommendation.status) }}
+  </UBadge>
+</div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
             <p class="text-sm text-gray-600">E-Mail</p>

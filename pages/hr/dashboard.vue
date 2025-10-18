@@ -1,199 +1,234 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <nav class="bg-white shadow-sm border-b">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <div class="flex items-center space-x-4">
-            <h1 class="text-xl font-semibold text-gray-900">HR Dashboard</h1>
-            <UBadge color="blue" variant="subtle">{{ data?.user?.role }}</UBadge>
-          </div>
-          
-          <div class="flex items-center space-x-4">
-            <UButton @click="navigateTo('/dashboard')" variant="ghost" size="sm">
-              Zurück zum Dashboard
-            </UButton>
-            <UButton @click="handleLogout" variant="ghost" size="sm">
-              Abmelden
-            </UButton>
-          </div>
-        </div>
-      </div>
-    </nav>
+  <div class="page-container">
+    <div class="page-header">
+      <h1 class="heading-1">HR Dashboard</h1>
+      <p class="text-muted">Übersicht aller Mitarbeiterempfehlungen</p>
+    </div>
 
-    <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      <!-- Statistics -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="card">
-          <p class="text-sm text-gray-600 mb-1">Gesamt</p>
-          <p class="text-3xl font-bold text-gray-900">{{ stats.total }}</p>
-        </div>
-        <div class="card">
-          <p class="text-sm text-gray-600 mb-1">Eingereicht</p>
-          <p class="text-3xl font-bold text-blue-600">{{ stats.submitted }}</p>
-        </div>
-        <div class="card">
-          <p class="text-sm text-gray-600 mb-1">In Prüfung</p>
-          <p class="text-3xl font-bold text-yellow-600">{{ stats.inReview }}</p>
-        </div>
-        <div class="card">
-          <p class="text-sm text-gray-600 mb-1">Genehmigt</p>
-          <p class="text-3xl font-bold text-green-600">{{ stats.approved }}</p>
-        </div>
-      </div>
-
-      <!-- Filters -->
-      <div class="card mb-6">
-        <div class="flex flex-wrap gap-4">
-          <div class="flex-1 min-w-[200px]">
-            <UInput
-              v-model="searchQuery"
-              placeholder="Suche nach Name, Email, Position..."
-              icon="i-heroicons-magnifying-glass"
-            />
-          </div>
-          <USelect
-            v-model="filterStatus"
-            :options="statusOptions"
-            placeholder="Status filtern"
-            class="w-48"
-          />
-          <USelect
-            v-model="filterDepartment"
-            :options="departmentOptions"
-            placeholder="Abteilung filtern"
-            class="w-48"
-          />
-          <UButton
-            @click="resetFilters"
-            variant="outline"
-            icon="i-heroicons-x-mark"
-          >
-            Zurücksetzen
-          </UButton>
-        </div>
-      </div>
-
-      <!-- Recommendations Table -->
+    <!-- Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
       <div class="card">
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-2xl font-bold text-gray-900">
-            Alle Empfehlungen ({{ filteredRecommendations.length }})
-          </h2>
-        </div>
-
-        <div v-if="loading" class="text-center py-12">
-          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p class="text-gray-600 mt-4">Lade Empfehlungen...</p>
-        </div>
-
-        <div v-else-if="filteredRecommendations.length === 0" class="text-center py-12">
-          <UIcon name="i-heroicons-inbox" class="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <p class="text-gray-600">Keine Empfehlungen gefunden.</p>
-        </div>
-
-        <div v-else class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Kandidat
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Position / Abteilung
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Empfohlen von
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Datum
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Aktionen
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr
-                v-for="rec in filteredRecommendations"
-                :key="rec.id"
-                class="hover:bg-gray-50"
-              >
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div>
-                    <div class="text-sm font-medium text-gray-900">{{ rec.candidateName }}</div>
-                    <div class="text-sm text-gray-500">{{ rec.candidateEmail }}</div>
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{{ rec.position }}</div>
-                  <div class="text-sm text-gray-500">{{ rec.department }}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">
-                    {{ rec.recommendedByUser.firstName }} {{ rec.recommendedByUser.lastName }}
-                  </div>
-                  <div class="text-sm text-gray-500">{{ rec.recommendedByUser.department }}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <USelect
-                    v-model="rec.status"
-                    :options="statusSelectOptions"
-                    @change="updateStatus(rec.id, rec.status)"
-                    size="sm"
-                  />
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ formatDate(rec.createdAt) }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <div class="flex space-x-2">
-                    <UButton
-                      @click="downloadPDF(rec.id)"
-                      variant="ghost"
-                      size="xs"
-                      icon="i-heroicons-arrow-down-tray"
-                      :loading="downloadingId === rec.id"
-                    >
-                      PDF
-                    </UButton>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-muted text-sm">Gesamt</p>
+            <h3 class="heading-3 mb-0 mt-1">{{ stats.total }}</h3>
+          </div>
+          <div class="text-indigo-400 text-4xl">📊</div>
         </div>
       </div>
-    </main>
+
+      <div class="card">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-muted text-sm">Eingereicht</p>
+            <h3 class="heading-3 mb-0 mt-1">{{ stats.submitted }}</h3>
+          </div>
+          <div class="text-blue-400 text-4xl">📝</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-muted text-sm">In Prüfung</p>
+            <h3 class="heading-3 mb-0 mt-1">{{ stats.inReview }}</h3>
+          </div>
+          <div class="text-yellow-400 text-4xl">⏳</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-muted text-sm">Genehmigt</p>
+            <h3 class="heading-3 mb-0 mt-1">{{ stats.approved }}</h3>
+          </div>
+          <div class="text-green-400 text-4xl">✅</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="md:col-span-2">
+          <label class="form-label">Suche</label>
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Name, Email, Position..."
+            class="input"
+          />
+        </div>
+        
+        <div>
+          <label class="form-label">Status</label>
+          <select v-model="filterStatus" class="select">
+            <option value="">Alle Status</option>
+            <option value="SUBMITTED">Eingereicht</option>
+            <option value="IN_REVIEW">In Prüfung</option>
+            <option value="APPROVED">Genehmigt</option>
+            <option value="REJECTED">Abgelehnt</option>
+            <option value="WITHDRAWN">Zurückgezogen</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label">Abteilung</label>
+          <select v-model="filterDepartment" class="select">
+            <option value="">Alle Abteilungen</option>
+            <option v-for="dept in departments" :key="dept" :value="dept">
+              {{ dept }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mt-4 flex items-center justify-between">
+        <p class="text-muted text-sm">
+          {{ filteredRecommendations.length }} Empfehlung(en) gefunden
+        </p>
+        <button
+          v-if="hasActiveFilters"
+          @click="resetFilters"
+          class="text-link text-sm"
+        >
+          Filter zurücksetzen
+        </button>
+      </div>
+    </div>
+
+    <!-- Recommendations Table -->
+    <div class="card">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="heading-2 mb-0">Alle Empfehlungen</h2>
+      </div>
+
+      <div v-if="loading" class="text-center py-12">
+        <div class="spinner w-8 h-8 mx-auto mb-4"></div>
+        <p class="text-muted">Lade Empfehlungen...</p>
+      </div>
+
+      <div v-else-if="filteredRecommendations.length === 0" class="text-center py-12">
+        <div class="text-6xl mb-4">📭</div>
+        <p class="text-muted">Keine Empfehlungen gefunden.</p>
+      </div>
+
+      <div v-else class="overflow-x-auto">
+        <table class="table">
+          <thead class="table-header">
+            <tr>
+              <th class="table-header-cell">Kandidat</th>
+              <th class="table-header-cell">Position / Abteilung</th>
+              <th class="table-header-cell">Empfohlen von</th>
+              <th class="table-header-cell">Status</th>
+              <th class="table-header-cell">Datum</th>
+              <th class="table-header-cell">Aktionen</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="rec in filteredRecommendations"
+              :key="rec.id"
+              class="table-row"
+            >
+              <td class="table-cell">
+                <div>
+                  <div class="text-primary">{{ rec.candidateName }}</div>
+                  <div class="text-muted text-sm">{{ rec.candidateEmail }}</div>
+                </div>
+              </td>
+              <td class="table-cell">
+                <div class="text-secondary">{{ rec.position }}</div>
+                <div class="text-muted text-sm">{{ rec.department || 'Keine Abteilung' }}</div>
+              </td>
+              <td class="table-cell">
+                <div class="text-secondary">
+                  {{ rec.recommendedByUser.firstName }} {{ rec.recommendedByUser.lastName }}
+                </div>
+                <div class="text-muted text-sm">{{ rec.recommendedByUser.department || 'Keine Abteilung' }}</div>
+              </td>
+              <td class="table-cell">
+                <select
+                  v-model="rec.status"
+                  @change="updateStatus(rec.id, rec.status)"
+                  class="select text-sm"
+                >
+                  <option value="SUBMITTED">Eingereicht</option>
+                  <option value="IN_REVIEW">In Prüfung</option>
+                  <option value="APPROVED">Genehmigt</option>
+                  <option value="REJECTED">Abgelehnt</option>
+                  <option value="WITHDRAWN">Zurückgezogen</option>
+                </select>
+              </td>
+              <td class="table-cell text-muted">
+                {{ formatDate(rec.createdAt) }}
+              </td>
+              <td class="table-cell">
+                <div class="flex gap-2">
+                  <button
+                    @click="downloadPDF(rec.id)"
+                    class="btn-outline text-xs"
+                    :disabled="downloadingId === rec.id"
+                  >
+                    <span v-if="downloadingId === rec.id">⏳</span>
+                    <span v-else>📥 PDF</span>
+                  </button>
+                  <NuxtLink
+                    :to="`/recommendations/${rec.id}`"
+                    class="btn-secondary text-xs"
+                  >
+                    Details
+                  </NuxtLink>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 definePageMeta({
-  middleware: ['hr'] 
+  middleware: 'auth'
 })
 
-const { data, signOut } = useAuth()
+interface Recommendation {
+  id: string
+  candidateName: string
+  candidateEmail: string
+  position: string
+  department: string | null
+  status: string
+  createdAt: string
+  recommendedByUser: {
+    firstName: string
+    lastName: string
+    department: string | null
+  }
+}
 
+const { data } = useAuth()
 const loading = ref(true)
-const recommendations = ref([])
+const recommendations = ref<Recommendation[]>([])
 const searchQuery = ref('')
 const filterStatus = ref('')
 const filterDepartment = ref('')
-const downloadingId = ref(null)
+const downloadingId = ref<string | null>(null)
 
-const statusOptions = ['Alle Status', 'SUBMITTED', 'IN_REVIEW', 'APPROVED', 'REJECTED', 'WITHDRAWN']
-const departmentOptions = ref(['Alle Abteilungen'])
-
-const statusSelectOptions = [
-  { label: 'Eingereicht', value: 'SUBMITTED' },
-  { label: 'In Prüfung', value: 'IN_REVIEW' },
-  { label: 'Genehmigt', value: 'APPROVED' },
-  { label: 'Abgelehnt', value: 'REJECTED' },
-  { label: 'Zurückgezogen', value: 'WITHDRAWN' }
-]
+// Check if user is HR
+onMounted(() => {
+  const authData = data.value as { user: { department: string | null } | null }
+  const department = authData?.user?.department
+  if (department !== 'HR' && department !== 'Human Resources') {
+    navigateTo('/dashboard')
+    return
+  }
+  
+  fetchRecommendations()
+})
 
 const stats = computed(() => {
   const total = recommendations.value.length
@@ -204,10 +239,19 @@ const stats = computed(() => {
   return { total, submitted, inReview, approved }
 })
 
+const departments = computed(() => {
+  const depts = new Set(
+    recommendations.value
+      .map(r => r.department)
+      .filter((dept): dept is string => dept !== null)
+  )
+  return Array.from(depts).sort()
+})
+
 const filteredRecommendations = computed(() => {
   let filtered = [...recommendations.value]
   
-
+  // Filter by search
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(rec =>
@@ -217,28 +261,32 @@ const filteredRecommendations = computed(() => {
     )
   }
   
- 
-  if (filterStatus.value && filterStatus.value !== 'Alle Status') {
+  // Filter by status
+  if (filterStatus.value) {
     filtered = filtered.filter(rec => rec.status === filterStatus.value)
   }
   
-
-  if (filterDepartment.value && filterDepartment.value !== 'Alle Abteilungen') {
+  // Filter by department
+  if (filterDepartment.value) {
     filtered = filtered.filter(rec => rec.department === filterDepartment.value)
   }
   
   return filtered
 })
 
-const formatDate = (date) => {
-  return new Intl.DateTimeFormat('de-DE', {
+const hasActiveFilters = computed(() => {
+  return searchQuery.value || filterStatus.value || filterDepartment.value
+})
+
+const formatDate = (date: string) => {
+  return new Date(date).toLocaleDateString('de-DE', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric'
-  }).format(new Date(date))
+  })
 }
 
-const updateStatus = async (id, newStatus) => {
+const updateStatus = async (id: string, newStatus: string) => {
   try {
     const response = await $fetch(`/api/recommendations/${id}/status`, {
       method: 'PUT',
@@ -246,18 +294,16 @@ const updateStatus = async (id, newStatus) => {
     })
     
     if (response.success) {
-  
       console.log('Status updated successfully')
     }
   } catch (error) {
     console.error('Status update failed:', error)
     alert('Fehler beim Aktualisieren des Status')
-
     await fetchRecommendations()
   }
 }
 
-const downloadPDF = async (id) => {
+const downloadPDF = async (id: string) => {
   downloadingId.value = id
   
   try {
@@ -291,28 +337,11 @@ const fetchRecommendations = async () => {
   loading.value = true
   try {
     const response = await $fetch('/api/recommendations')
-    recommendations.value = response.recommendations
-    
-    const depts = new Set(recommendations.value.map(r => r.department))
-    departmentOptions.value = ['Alle Abteilungen', ...Array.from(depts)]
+    recommendations.value = Array.isArray(response) ? response : response.recommendations || []
   } catch (error) {
     console.error('Error fetching recommendations:', error)
   } finally {
     loading.value = false
   }
 }
-
-async function handleLogout() {
-  await signOut()
-}
-
-onMounted(() => {
-
-  if (data.value?.user?.role !== 'HR' && data.value?.user?.role !== 'ADMIN') {
-    navigateTo('/dashboard')
-    return
-  }
-  
-  fetchRecommendations()
-})
 </script>
