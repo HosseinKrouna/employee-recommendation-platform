@@ -38,26 +38,26 @@
       </div>
 
       <!-- Preview Section -->
-      <div v-if="showPreview && previewUrl" class="preview-container">
-        <div class="border-2 border-gray-200 rounded-lg overflow-hidden bg-white">
-          <iframe
-            v-if="fileType === 'pdf'"
-            :src="previewUrl"
-            class="w-full h-[600px]"
-            frameborder="0"
-          />
-          <img
-            v-else-if="fileType === 'image'"
-            :src="previewUrl"
-            :alt="`CV von ${candidateName}`"
-            class="w-full h-auto"
-          />
-          <div v-else class="p-8 text-center text-gray-500">
-            <p>Vorschau für diesen Dateityp nicht verfügbar.</p>
-            <p class="text-sm mt-2">Bitte laden dir die Datei herunter, um sie anzuzeigen.</p>
-          </div>
-        </div>
-      </div>
+<div v-if="showPreview && previewUrl" class="preview-container mt-4">
+  <div class="border-2 border-gray-600 rounded-lg overflow-hidden bg-gray-800 shadow-xl">
+    <iframe
+      v-if="fileType === 'pdf'"
+      :src="previewUrl"
+      class="w-full h-[600px] bg-white"
+      frameborder="0"
+    />
+    <img
+      v-else-if="fileType === 'image'"
+      :src="previewUrl"
+      :alt="`CV von ${candidateName}`"
+      class="w-full h-auto"
+    />
+    <div v-else class="p-8 text-center text-gray-400">
+      <p>Vorschau für diesen Dateityp nicht verfügbar.</p>
+      <p class="text-sm mt-2">Bitte lade die Datei herunter, um sie anzuzeigen.</p>
+    </div>
+  </div>
+</div>
     </div>
   </div>
 </template>
@@ -171,18 +171,18 @@ onUnmounted(() => {
 
 <style scoped>
 .btn-primary {
-  @apply px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  @apply px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg border border-indigo-500;
 }
 
 .btn-secondary {
-  @apply px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors;
+  @apply px-4 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 transition-colors shadow-lg border border-gray-600;
 }
 
 .alert-error {
-  @apply bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg;
+  @apply bg-red-900/30 border border-red-700 text-red-200 px-4 py-3 rounded-lg backdrop-blur-sm;
 }
 
 .alert-info {
-  @apply bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg;
+  @apply bg-blue-900/30 border border-blue-700 text-blue-200 px-4 py-3 rounded-lg backdrop-blur-sm;
 }
 </style>

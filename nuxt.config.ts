@@ -6,13 +6,22 @@ export default defineNuxtConfig({
   modules: [
     '@nuxt/ui'
   ],
+  
+  app: {
+    head: {
+      htmlAttrs: {
+        class: 'dark' 
+      }
+    }
+  },
 
-  css: ['./assets/css/main.css'],
+  css: ['~/assets/css/main.css'],
 
   typescript: {
     typeCheck: false
   },
-    routeRules: {
+  
+  routeRules: {
     '/api/upload/**': { 
       cors: true,
       headers: {
@@ -21,18 +30,9 @@ export default defineNuxtConfig({
     },
   },
 
-  // TypeScript temporär komplett deaktiviert
-  // ssr: true,
-  // nitro: {
-  //   typescript: {
-  //     generateTsConfig: false
-  //   }
-  // },
-
   runtimeConfig: {
     databaseUrl: process.env.DATABASE_URL,
     jwtSecret: process.env.JWT_SECRET,
-
     
     emailFrom: process.env.EMAIL_FROM || 'noreply@company.com',
     emailFromName: process.env.EMAIL_FROM_NAME || 'Employee Recommendation Platform',

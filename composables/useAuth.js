@@ -46,7 +46,7 @@ export const useAuth = () => {
         localStorage.removeItem('user')
         localStorage.removeItem('token')
       }
-      await navigateTo('/auth/login')
+      await navigateTo('/login')
     } catch (error) {
       console.error('Logout error:', error)
     }
