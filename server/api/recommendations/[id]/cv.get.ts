@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  
+  // Auth check
   const authHeader = getHeader(event, 'authorization')
   if (!authHeader?.startsWith('Bearer ')) {
     throw createError({
@@ -24,12 +24,12 @@ export default defineEventHandler(async (event) => {
 
   const token = authHeader.substring(7)
   let userId: string
-  let userRole: string
+  let userDepartment: string
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as any
     userId = decoded.userId
-    userRole = decoded.role
+    userDepartment = decoded.department
   } catch (error) {
     throw createError({
       statusCode: 401,
@@ -37,12 +37,13 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  try {
-    
+  try {    
+    // Get recommendation
     const recommendation = await prisma.recommendation.findUnique({
       where: { id: recommendationId },
       select: {
         cvFilePath: true,
+        cvFileName: true,
         candidateName: true,
         recommendedById: true
       }
@@ -55,8 +56,11 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    // Check permissions
+    const isHR = userDepartment === 'HR' || userDepartment === 'Human Resources'
+    const isOwner = recommendation.recommendedById === userId
     
-    if (userRole !== 'HR' && recommendation.recommendedById !== userId) {
+    if (!isHR && !isOwner) {
       throw createError({
         statusCode: 403,
         statusMessage: 'No permission to access this CV'
@@ -70,26 +74,32 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-   
-    const uploadsDir = join(process.cwd(), 'uploads', 'cv')
-    const filePath = join(uploadsDir, basename(recommendation.cvFilePath))
-
+    let relativePath = recommendation.cvFilePath
+    if (relativePath.startsWith('/uploads/')) {
+      relativePath = relativePath.substring('/uploads/'.length)
+    } else if (relativePath.startsWith('uploads/')) {
+      relativePath = relativePath.substring('uploads/'.length)
+    }
     
+    const filePath = join(process.cwd(), 'uploads', relativePath)
+
+    // Check if file exists
     try {
       await access(filePath)
     } catch {
+      console.log('❌ File not found at:', filePath)
       throw createError({
         statusCode: 404,
-        statusMessage: 'CV file not found'
+        statusMessage: 'CV file not found on server'
       })
     }
 
-   
-    const fileBuffer = await readFile(filePath)
-    const fileName = basename(recommendation.cvFilePath)
+    // Read file
+    const fileBuffer = await readFile(filePath)    
+    const fileName = recommendation.cvFileName || basename(recommendation.cvFilePath)
     const fileExt = extname(fileName).toLowerCase()
 
-   
+    // Set content type
     let contentType = 'application/octet-stream'
     if (fileExt === '.pdf') {
       contentType = 'application/pdf'
@@ -100,15 +110,21 @@ export default defineEventHandler(async (event) => {
     } else if (fileExt === '.png') {
       contentType = 'image/png'
     }
-    
+        
     setHeader(event, 'Content-Type', contentType)
     setHeader(event, 'Content-Disposition', `inline; filename="${fileName}"`)
-    setHeader(event, 'Content-Length', fileBuffer.length)
+    setHeader(event, 'Cache-Control', 'no-cache')
     
     return fileBuffer
 
-  } catch (error) {
-    console.error('CV download error:', error)
+  } catch (error: any) {
+    console.error('❌ CV download error:', error)
+    
+    // If it's already a createError, throw it
+    if (error.statusCode) {
+      throw error
+    }
+    
     throw createError({
       statusCode: 500,
       statusMessage: 'Error loading CV'

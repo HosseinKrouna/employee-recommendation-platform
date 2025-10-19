@@ -1,8 +1,13 @@
 <template>
   <div class="cv-viewer">
     <!-- Keine CV Nachricht -->
-    <div v-if="!cvPath" class="alert-info">
-      Kein Lebenslauf vorhanden
+    <div v-if="!cvPath" class="bg-blue-900/30 border border-blue-700 text-blue-200 px-4 py-3 rounded-lg backdrop-blur-sm">
+      <div class="flex items-center">
+        <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Kein Lebenslauf vorhanden
+      </div>
     </div>
 
     <!-- Download & Preview Buttons - nur anzeigen wenn CV vorhanden -->
@@ -11,9 +16,9 @@
         <button
           @click="downloadCv"
           :disabled="loading"
-          class="btn-primary flex items-center gap-2"
+          class="btn-primary inline-flex items-center"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
           {{ loading ? 'Lädt...' : 'CV Herunterladen' }}
@@ -22,9 +27,9 @@
         <button
           v-if="canPreview"
           @click="togglePreview"
-          class="btn-secondary flex items-center gap-2"
+          class="btn-secondary inline-flex items-center"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
           </svg>
@@ -33,31 +38,36 @@
       </div>
 
       <!-- Error Message -->
-      <div v-if="error" class="alert-error mb-4">
-        {{ error }}
+      <div v-if="error" class="bg-red-900/30 border border-red-700 text-red-200 px-4 py-3 rounded-lg backdrop-blur-sm mb-4">
+        <div class="flex items-center">
+          <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          {{ error }}
+        </div>
       </div>
 
       <!-- Preview Section -->
-<div v-if="showPreview && previewUrl" class="preview-container mt-4">
-  <div class="border-2 border-gray-600 rounded-lg overflow-hidden bg-gray-800 shadow-xl">
-    <iframe
-      v-if="fileType === 'pdf'"
-      :src="previewUrl"
-      class="w-full h-[600px] bg-white"
-      frameborder="0"
-    />
-    <img
-      v-else-if="fileType === 'image'"
-      :src="previewUrl"
-      :alt="`CV von ${candidateName}`"
-      class="w-full h-auto"
-    />
-    <div v-else class="p-8 text-center text-gray-400">
-      <p>Vorschau für diesen Dateityp nicht verfügbar.</p>
-      <p class="text-sm mt-2">Bitte lade die Datei herunter, um sie anzuzeigen.</p>
-    </div>
-  </div>
-</div>
+      <div v-if="showPreview && previewUrl" class="preview-container mt-4">
+        <div class="border-2 border-gray-600 rounded-lg overflow-hidden bg-gray-800 shadow-xl">
+          <iframe
+            v-if="fileType === 'pdf'"
+            :src="previewUrl"
+            class="w-full h-[600px] bg-white"
+            frameborder="0"
+          />
+          <img
+            v-else-if="fileType === 'image'"
+            :src="previewUrl"
+            :alt="`CV von ${candidateName}`"
+            class="w-full h-auto"
+          />
+          <div v-else class="p-8 text-center text-muted">
+            <p>Vorschau für diesen Dateityp nicht verfügbar.</p>
+            <p class="text-sm mt-2">Bitte lade die Datei herunter, um sie anzuzeigen.</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -168,21 +178,3 @@ onUnmounted(() => {
   }
 })
 </script>
-
-<style scoped>
-.btn-primary {
-  @apply px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg border border-indigo-500;
-}
-
-.btn-secondary {
-  @apply px-4 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 transition-colors shadow-lg border border-gray-600;
-}
-
-.alert-error {
-  @apply bg-red-900/30 border border-red-700 text-red-200 px-4 py-3 rounded-lg backdrop-blur-sm;
-}
-
-.alert-info {
-  @apply bg-blue-900/30 border border-blue-700 text-blue-200 px-4 py-3 rounded-lg backdrop-blur-sm;
-}
-</style>

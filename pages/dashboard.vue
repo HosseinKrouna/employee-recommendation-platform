@@ -156,26 +156,42 @@ const stats = ref({
 
 onMounted(async () => {
   try {
-    const { data } = await useFetch('/api/recommendations', {
-      query: { limit: 5 }
+    const token = localStorage.getItem('token')
+        
+    const response = await fetch('/api/recommendations', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
     })
+        
+    if (!response.ok) {
+      throw new Error('Fehler beim Laden')
+    }
     
-    if (data.value) {
-      // API gibt { recommendations: [...], success: boolean } zurück
-      const recs = Array.isArray(data.value) ? data.value : data.value.recommendations || []
-      recommendations.value = recs
-      
-      // Calculate stats
-      stats.value.total = recs.length
-      stats.value.pending = recs.filter(r => 
+    const data = await response.json()
+    
+    // Handle both response formats
+    const allRecs = Array.isArray(data) 
+      ? data 
+      : (data.recommendations || [])
+    
+    
+    // Calculate stats from ALL recommendations
+    stats.value = {
+      total: allRecs.length,
+      pending: allRecs.filter((r: Recommendation) => 
         r.status === 'SUBMITTED' || r.status === 'IN_REVIEW'
-      ).length
-      stats.value.approved = recs.filter(r => 
+      ).length,
+      approved: allRecs.filter((r: Recommendation) => 
         r.status === 'APPROVED'
       ).length
     }
+        
+    // Show only the last 5 in the list
+    recommendations.value = allRecs.slice(0, 5)
+    
   } catch (error) {
-    console.error('Fehler beim Laden der Empfehlungen:', error)
+    console.error('❌ Error loading recommendations:', error)
   } finally {
     loading.value = false
   }

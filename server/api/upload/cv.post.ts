@@ -1,4 +1,4 @@
-import { defineEventHandler, readMultipartFormData, createError } from 'h3'
+import { defineEventHandler, readMultipartFormData, createError, getHeaders } from 'h3'
 import { writeFile, mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
 import path from 'path'
@@ -6,7 +6,19 @@ import { v4 as uuidv4 } from 'uuid'
 
 export default defineEventHandler(async (event) => {
   try {
+    console.log('=== CV Upload Debug ===')
+    console.log('Headers:', getHeaders(event))
+    console.log('Method:', event.method)
+    
     const formData = await readMultipartFormData(event)
+    
+    console.log('FormData received:', formData)
+    console.log('FormData items:', formData?.map(item => ({
+      name: item.name,
+      filename: item.filename,
+      type: item.type,
+      dataLength: item.data?.length
+    })))
     
     if (!formData) {
       throw createError({
@@ -16,6 +28,13 @@ export default defineEventHandler(async (event) => {
     }
 
     const cvFile = formData.find(item => item.name === 'cv')
+    
+    console.log('CV File found:', cvFile ? 'YES' : 'NO')
+    console.log('CV File details:', cvFile ? {
+      name: cvFile.name,
+      filename: cvFile.filename,
+      type: cvFile.type
+    } : 'NONE')
     
     if (!cvFile || !cvFile.filename) {
       throw createError({
@@ -39,18 +58,15 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    
     const uploadDir = path.join(process.cwd(), 'uploads', 'cv')
     if (!existsSync(uploadDir)) {
       await mkdir(uploadDir, { recursive: true })
     }
 
-   
     const ext = path.extname(cvFile.filename)
     const uniqueFilename = `cv-${uuidv4()}${ext}`
     const filePath = path.join(uploadDir, uniqueFilename)
 
-    
     await writeFile(filePath, cvFile.data)
 
     return {
@@ -64,7 +80,7 @@ export default defineEventHandler(async (event) => {
       }
     }
   } catch (error: any) {
-    console.error('Upload error:', error)
+    console.error('❌ Upload error:', error)
     
     if (error.statusCode) {
       throw error
