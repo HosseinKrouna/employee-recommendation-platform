@@ -59,7 +59,7 @@ async function main() {
     }
   })
 
-  // ✅ FIXED: Skills jetzt mit name und level
+
   const recommendation1 = await prisma.recommendation.create({
     data: {
       candidateName: 'Anna Kandidatin',
@@ -80,7 +80,7 @@ async function main() {
     }
   })
 
-  // ✅ FIXED: Skills jetzt mit name und level
+  
   const recommendation2 = await prisma.recommendation.create({
     data: {
       candidateName: 'Tom Developer',

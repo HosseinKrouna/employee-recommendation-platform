@@ -371,7 +371,7 @@ const withdrawRecommendation = async () => {
 
     alert('Empfehlung erfolgreich zurückgezogen')
     
-    // Optional: Zurück zum Dashboard nach 2 Sekunden
+    // Zurück zum Dashboard nach 2 Sekunden
     setTimeout(() => {
       router.push('/dashboard')
     }, 2000)

@@ -339,7 +339,7 @@ const form = ref({
   notes: ''
 })
 
-// ✅ FIX: newSkill ist jetzt ein Objekt mit name und level
+// newSkill Objekt 
 const newSkill = ref({
   name: '',
   level: 50
@@ -363,7 +363,7 @@ const departmentOptions = [
   'Customer Success'
 ]
 
-// ✅ FIX: addSkill mit neuem Format
+// addSkill 
 const addSkill = () => {
   const skillName = newSkill.value.name.trim()
   if (!skillName) return
@@ -387,12 +387,12 @@ const addSkill = () => {
   }
 }
 
-// ✅ FIX: removeSkill mit Index statt Skill-Name
+// removeSkill mit Index
 const removeSkill = (index) => {
   form.value.skills.splice(index, 1)
 }
 
-// ✅ NEU: Skill Color Helper für Progress Bars
+// Skill Color Helper für Progress Bars
 const getSkillColor = (level) => {
   if (level >= 80) return 'bg-gradient-to-r from-green-500 to-emerald-500'
   if (level >= 60) return 'bg-gradient-to-r from-blue-500 to-cyan-500'

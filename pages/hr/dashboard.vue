@@ -165,7 +165,7 @@
               <td class="px-4 py-4">{{ formatDate(rec.createdAt) }}</td>
               <td class="px-4 py-4">
                 <div class="flex gap-2 items-center h-10">
-                  <!-- Status Change Dropdown - Fixed Width & Height -->
+                  <!-- Status Change Dropdown -->
                   <select 
                     v-if="rec.status !== 'WITHDRAWN'"
                     @change="changeStatus(rec.id, $event)"
@@ -181,15 +181,22 @@
                   <!-- Placeholder wenn WITHDRAWN -->
                   <div v-else class="w-36 h-10"></div>
 
-                  <!-- View Details Button - Fixed Width & Height -->
+                  <!-- View Details Button-->
                   <NuxtLink 
                     :to="`/hr/recommendations/${rec.id}`"
                     class="btn-secondary text-sm h-10 w-20 flex items-center justify-center py-0"
                   >
                     Details
                   </NuxtLink>
-
-                  <!-- CV Button or Placeholder - Fixed Width & Height -->
+                      <!-- PDF Download Button -->
+                       <button 
+                       @click="downloadPdf(rec.id, rec.candidateName)"
+                       class="btn-primary text-sm h-10 w-16 flex items-center justify-center py-0"
+                       :disabled="downloadingPdf === rec.id"
+                       title="PDF herunterladen">
+                       📑
+                      </button>
+                  <!-- CV Button-->
                   <button
                     v-if="rec.cvFilePath"
                     @click="downloadCv(rec.id, rec.candidateName)"
@@ -239,20 +246,21 @@ const searchName = ref('')
 const searchPosition = ref('')
 const sortOrder = ref('desc')
 const updatingStatus = ref<string | null>(null)
+const downloadingPdf = ref<string | null>(null)
 
-// ✅ NEUE FILTER-VARIABLEN
+// NEUE FILTER-VARIABLEN
 const filterPosition = ref('')
 const filterRecommendedBy = ref('')
 const dateFrom = ref('')
 const dateTo = ref('')
 
-// ✅ COMPUTED FÜR UNIQUE POSITIONEN
+// COMPUTED FÜR UNIQUE POSITIONEN
 const uniquePositions = computed(() => {
   const positions = recommendations.value.map(r => r.position)
   return [...new Set(positions)].sort()
 })
 
-// ✅ COMPUTED FÜR UNIQUE EMPLOYEES
+// COMPUTED FÜR UNIQUE EMPLOYEES
 const uniqueEmployees = computed(() => {
   const employees = recommendations.value
     .filter(r => r.recommendedByUser)
@@ -293,12 +301,12 @@ const filteredRecommendations = computed(() => {
     )
   }
   
-  // ✅ FILTER BY POSITION
+  // FILTER BY POSITION
   if (filterPosition.value) {
     filtered = filtered.filter(r => r.position === filterPosition.value)
   }
   
-  // ✅ FILTER BY RECOMMENDED BY
+  // FILTER BY RECOMMENDED BY
   if (filterRecommendedBy.value) {
     filtered = filtered.filter(r => {
       if (!r.recommendedByUser) return false
@@ -307,7 +315,7 @@ const filteredRecommendations = computed(() => {
     })
   }
   
-  // ✅ FILTER BY DATE RANGE
+  // FILTER BY DATE RANGE
   if (dateFrom.value) {
     filtered = filtered.filter(r => {
       const recDate = new Date(r.createdAt)
@@ -342,7 +350,7 @@ const filteredRecommendations = computed(() => {
   return filtered
 })
 
-// ✅ CLEAR FILTERS FUNKTION
+// CLEAR FILTERS FUNKTION
 const clearFilters = () => {
   filterStatus.value = ''
   searchName.value = ''
@@ -441,6 +449,38 @@ const downloadCv = async (id: string, candidateName: string) => {
   } catch (error) {
     console.error('Error downloading CV:', error)
     alert('Fehler beim Herunterladen des CVs')
+  }
+}
+
+const downloadPdf = async (id: string, candidateName: string) => {
+  downloadingPdf.value = id
+  
+  try {
+    const token = localStorage.getItem('token')
+    const response = await fetch(`/api/recommendations/${id}/pdf`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error('Fehler beim Erstellen des PDFs')
+    }
+
+    const blob = await response.blob()
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `Empfehlung_${candidateName.replace(/\s+/g, '_')}.pdf`
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+  } catch (error) {
+    console.error('Error downloading PDF:', error)
+    alert('Fehler beim Herunterladen des PDFs')
+  } finally {
+    downloadingPdf.value = null
   }
 }
 
