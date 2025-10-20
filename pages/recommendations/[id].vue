@@ -45,13 +45,6 @@
                 </svg>
                 {{ recommendation.position }}
               </span>
-              <span class="text-gray-600">•</span>
-              <span class="flex items-center">
-                <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-                {{ recommendation.department }}
-              </span>
             </div>
           </div>
           <div>
@@ -191,8 +184,7 @@
             </div>
           </div>
 
-         
-          <!-- CV Section - HIER EINFÜGEN! -->
+          <!-- CV Section -->
           <div class="card">
             <div class="bg-gradient-to-r from-blue-600 to-cyan-600 px-6 py-4 -mx-6 -mt-6 mb-6 rounded-t-xl">
               <h2 class="heading-2 mb-0 flex items-center text-white">
@@ -209,13 +201,11 @@
               :cv-path="recommendation.cvFilePath"
             />
           </div>
-
         </div>
-        <!-- Ende von lg:col-span-2 -->
 
-        <!-- Right Column - Status Info Only -->
+        <!-- Right Column - Status Info -->
         <div class="space-y-6">
-          <!-- Status Card ... -->
+          <!-- Status Info Card -->
           <div class="card">
             <div class="bg-gradient-to-r from-orange-600 to-red-600 px-6 py-4 -mx-6 -mt-6 mb-6 rounded-t-xl">
               <h2 class="heading-2 mb-0 flex items-center text-white">
@@ -235,7 +225,24 @@
                 </span>
               </div>
               
-              <div class="pt-4 border-t border-gray-700">
+              <!-- Zurückziehen Button -->
+              <div v-if="canWithdraw" class="pt-4 border-t border-gray-700">
+                <button
+                  @click="withdrawRecommendation"
+                  :disabled="withdrawing"
+                  class="btn-outline w-full text-red-400 border-red-500/50 hover:bg-red-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg class="h-5 w-5 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  {{ withdrawing ? 'Wird zurückgezogen...' : 'Empfehlung zurückziehen' }}
+                </button>
+                <p class="text-xs text-muted mt-2">
+                  Du kannst diese Empfehlung zurückziehen, solange sie noch nicht in Prüfung ist.
+                </p>
+              </div>
+              
+              <div v-else class="pt-4 border-t border-gray-700">
                 <p class="text-sm text-muted">
                   Du wirst per E-Mail benachrichtigt, wenn sich der Status deiner Empfehlung ändert.
                 </p>
@@ -250,16 +257,24 @@
 
 <script setup lang="ts">
 const route = useRoute()
+const router = useRouter()
 const recommendation = ref<any>(null)
 const loading = ref(true)
 const error = ref('')
+const withdrawing = ref(false)
+
+// Computed: Kann zurückgezogen werden?
+const canWithdraw = computed(() => {
+  return recommendation.value?.status === 'SUBMITTED'
+})
 
 const getStatusBadgeClass = (status: string) => {
   const classes: Record<string, string> = {
     SUBMITTED: 'badge badge-status-submitted inline-flex items-center',
     IN_REVIEW: 'badge badge-status-review inline-flex items-center',
     APPROVED: 'badge badge-status-approved inline-flex items-center',
-    REJECTED: 'badge badge-status-rejected inline-flex items-center'
+    REJECTED: 'badge badge-status-rejected inline-flex items-center',
+    WITHDRAWN: 'badge badge-status-withdrawn inline-flex items-center'
   }
   return classes[status] || 'badge inline-flex items-center'
 }
@@ -269,7 +284,8 @@ const getStatusDotClass = (status: string) => {
     SUBMITTED: 'h-2.5 w-2.5 rounded-full mr-2 bg-blue-400 animate-pulse',
     IN_REVIEW: 'h-2.5 w-2.5 rounded-full mr-2 bg-yellow-400 animate-pulse',
     APPROVED: 'h-2.5 w-2.5 rounded-full mr-2 bg-green-400 animate-pulse',
-    REJECTED: 'h-2.5 w-2.5 rounded-full mr-2 bg-red-400 animate-pulse'
+    REJECTED: 'h-2.5 w-2.5 rounded-full mr-2 bg-red-400 animate-pulse',
+    WITHDRAWN: 'h-2.5 w-2.5 rounded-full mr-2 bg-gray-400'
   }
   return colors[status] || 'h-2.5 w-2.5 rounded-full mr-2 bg-gray-400'
 }
@@ -279,7 +295,8 @@ const getStatusText = (status: string) => {
     SUBMITTED: 'Eingereicht',
     IN_REVIEW: 'In Prüfung',
     APPROVED: 'Genehmigt',
-    REJECTED: 'Abgelehnt'
+    REJECTED: 'Abgelehnt',
+    WITHDRAWN: 'Zurückgezogen'
   }
   return texts[status] || status
 }
@@ -321,6 +338,48 @@ const fetchRecommendation = async () => {
     error.value = err.message || 'Fehler beim Laden der Empfehlung'
   } finally {
     loading.value = false
+  }
+}
+
+// Funktion: Empfehlung zurückziehen
+const withdrawRecommendation = async () => {
+  if (!confirm('Möchtest du diese Empfehlung wirklich zurückziehen? Diese Aktion kann nicht rückgängig gemacht werden.')) {
+    return
+  }
+
+  withdrawing.value = true
+
+  try {
+    const token = localStorage.getItem('token')
+    const response = await fetch(`/api/recommendations/${route.params.id}/status`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ status: 'WITHDRAWN' })
+    })
+
+    if (!response.ok) {
+      throw new Error('Fehler beim Zurückziehen')
+    }
+
+    // Update local state
+    if (recommendation.value) {
+      recommendation.value.status = 'WITHDRAWN'
+    }
+
+    alert('Empfehlung erfolgreich zurückgezogen')
+    
+    // Optional: Zurück zum Dashboard nach 2 Sekunden
+    setTimeout(() => {
+      router.push('/dashboard')
+    }, 2000)
+  } catch (err: any) {
+    console.error('Error withdrawing recommendation:', err)
+    alert('Fehler beim Zurückziehen der Empfehlung')
+  } finally {
+    withdrawing.value = false
   }
 }
 

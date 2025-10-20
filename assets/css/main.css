@@ -144,6 +144,11 @@
     @apply bg-red-500/20 text-red-300 border border-red-500/50;
   }
   
+  /* NEU: WITHDRAWN Badge mit grauem Style */
+  .badge-status-withdrawn {
+    @apply bg-gray-500/20 text-gray-300 border border-gray-500/50;
+  }
+  
   .badge-info {
     @apply bg-indigo-500/20 text-indigo-300 border border-indigo-500/50;
   }

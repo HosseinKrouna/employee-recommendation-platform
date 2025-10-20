@@ -202,7 +202,8 @@ const getStatusBadgeClass = (status: string) => {
     'SUBMITTED': 'badge badge-status-submitted',
     'IN_REVIEW': 'badge badge-status-review',
     'APPROVED': 'badge badge-status-approved',
-    'REJECTED': 'badge badge-status-rejected'
+    'REJECTED': 'badge badge-status-rejected',
+    'WITHDRAWN': 'badge badge-status-withdrawn'
   }
   return classes[status] || 'badge'
 }
@@ -212,7 +213,8 @@ const getStatusText = (status: string) => {
     'SUBMITTED': 'Eingereicht',
     'IN_REVIEW': 'In Prüfung',
     'APPROVED': 'Genehmigt',
-    'REJECTED': 'Abgelehnt'
+    'REJECTED': 'Abgelehnt',
+    'WITHDRAW': 'Zurückgezogen'
   }
   return texts[status] || status
 }

@@ -18,7 +18,6 @@ const RecommendationStatus = {
 const prisma = new PrismaClient()
 
 async function main() {
-
   const passwordHash = await bcrypt.hash('TestPass123!', 12)
 
   const hrUser = await prisma.user.upsert({
@@ -60,6 +59,7 @@ async function main() {
     }
   })
 
+  // ✅ FIXED: Skills jetzt mit name und level
   const recommendation1 = await prisma.recommendation.create({
     data: {
       candidateName: 'Anna Kandidatin',
@@ -67,7 +67,12 @@ async function main() {
       candidatePhone: '+49 123 456789',
       position: 'Full-Stack Developer',
       department: 'Engineering',
-      skills: ['JavaScript', 'Vue.js', 'Node.js', 'PostgreSQL'],
+      skills: [
+        { name: 'JavaScript', level: 90 },
+        { name: 'Vue.js', level: 85 },
+        { name: 'Node.js', level: 80 },
+        { name: 'PostgreSQL', level: 75 }
+      ],
       experience: 'Anna hat 3 Jahre Erfahrung in der Webentwicklung und war bei zwei Startups tätig. Sie hat mehrere Vue.js Anwendungen von Grund auf entwickelt.',
       notes: 'Sehr kommunikativ und teamorientiert. Hat in meinem vorherigen Unternehmen exzellente Arbeit geleistet.',
       status: RecommendationStatus.IN_REVIEW,
@@ -75,6 +80,7 @@ async function main() {
     }
   })
 
+  // ✅ FIXED: Skills jetzt mit name und level
   const recommendation2 = await prisma.recommendation.create({
     data: {
       candidateName: 'Tom Developer',
@@ -82,7 +88,12 @@ async function main() {
       candidatePhone: '+49 987 654321',
       position: 'Backend Developer',
       department: 'Engineering',
-      skills: ['Python', 'Django', 'PostgreSQL', 'Docker'],
+      skills: [
+        { name: 'Python', level: 95 },
+        { name: 'Django', level: 90 },
+        { name: 'PostgreSQL', level: 85 },
+        { name: 'Docker', level: 80 }
+      ],
       experience: 'Tom ist ein erfahrener Backend-Entwickler mit 5 Jahren Erfahrung in Python und Django.',
       notes: 'Sehr strukturiert und zuverlässig. Perfekt für komplexe Backend-Systeme.',
       status: RecommendationStatus.SUBMITTED,
@@ -90,21 +101,23 @@ async function main() {
     }
   })
 
-  console.log('Seed completed successfully!')
-  console.log('Created:')
+  console.log('✅ Seed completed successfully!')
+  console.log('\n👥 Created Users:')
   console.log(`- HR User: ${hrUser.email}`)
   console.log(`- Employee: ${employee.email}`) 
   console.log(`- Admin: ${admin.email}`)
-  console.log(`- Recommendations: ${recommendation1.candidateName}, ${recommendation2.candidateName}`)
-  console.log('\n Login credentials:')
+  console.log(`\n📋 Created Recommendations:`)
+  console.log('\n🔑 Login credentials:')
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
   console.log('HR: hr@testcompany.com / TestPass123!')
   console.log('Employee: employee@testcompany.com / TestPass123!')
   console.log('Admin: admin@testcompany.com / TestPass123!')
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n')
 }
 
 main()
   .catch((e) => {
-    console.error('Seed failed:', e)
+    console.error('❌ Seed failed:', e)
     process.exit(1)
   })
   .finally(async () => {
