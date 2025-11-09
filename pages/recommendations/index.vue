@@ -39,7 +39,8 @@
         <div>
           <label class="form-label">Sortierung</label>
           <select v-model="filters.sortBy" class="select">
-            <option value="createdAt">Neueste zuerst</option>
+            <option value="createdAt-desc">Neueste zuerst</option>
+            <option value="createdAt-asc">Älteste zuerst</option>
             <option value="candidateName">Name (A-Z)</option>
             <option value="status">Status</option>
           </select>
@@ -192,21 +193,36 @@ const totalPages = ref(1)
 const filters = ref({
   search: '',
   status: '',
-  sortBy: 'createdAt'
+  sortBy: 'createdAt-desc'
 })
 
 onMounted(async () => {
   await loadRecommendations()
 })
 
+// ✅ FIX: Verwende fetch() mit Authorization Header statt useFetch
 const loadRecommendations = async () => {
   loading.value = true
   try {
-    const { data } = await useFetch('/api/recommendations')
-    if (data.value) {
-      // API gibt { recommendations: [...], success: boolean } zurück
-      recommendations.value = Array.isArray(data.value) ? data.value : data.value.recommendations || []
+    const token = localStorage.getItem('token')
+    
+    const response = await fetch('/api/recommendations', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    
+    if (!response.ok) {
+      throw new Error('Fehler beim Laden')
     }
+    
+    const data = await response.json()
+    
+    // Handle both response formats
+    recommendations.value = Array.isArray(data) 
+      ? data 
+      : (data.recommendations || [])
+      
   } catch (error) {
     console.error('Fehler beim Laden:', error)
   } finally {
@@ -232,10 +248,14 @@ const filteredRecommendations = computed(() => {
     result = result.filter(r => r.status === filters.value.status)
   }
 
-  // Sort
+  // ✅ FIX: Erweiterte Sortierung mit Älteste/Neueste
   result.sort((a, b) => {
-    if (filters.value.sortBy === 'createdAt') {
+    if (filters.value.sortBy === 'createdAt-desc') {
+      // Neueste zuerst
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    } else if (filters.value.sortBy === 'createdAt-asc') {
+      // Älteste zuerst
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     } else if (filters.value.sortBy === 'candidateName') {
       return a.candidateName.localeCompare(b.candidateName)
     } else if (filters.value.sortBy === 'status') {
@@ -248,14 +268,14 @@ const filteredRecommendations = computed(() => {
 })
 
 const hasActiveFilters = computed(() => {
-  return filters.value.search || filters.value.status || filters.value.sortBy !== 'createdAt'
+  return filters.value.search || filters.value.status || filters.value.sortBy !== 'createdAt-desc'
 })
 
 const resetFilters = () => {
   filters.value = {
     search: '',
     status: '',
-    sortBy: 'createdAt'
+    sortBy: 'createdAt-desc'
   }
 }
 
@@ -264,7 +284,8 @@ const getStatusBadgeClass = (status: string) => {
     'SUBMITTED': 'badge badge-status-submitted',
     'IN_REVIEW': 'badge badge-status-review',
     'APPROVED': 'badge badge-status-approved',
-    'REJECTED': 'badge badge-status-rejected'
+    'REJECTED': 'badge badge-status-rejected',
+    'WITHDRAWN': 'badge badge-status-withdrawn'
   }
   return classes[status] || 'badge'
 }
@@ -274,7 +295,8 @@ const getStatusText = (status: string) => {
     'SUBMITTED': 'Eingereicht',
     'IN_REVIEW': 'In Prüfung',
     'APPROVED': 'Genehmigt',
-    'REJECTED': 'Abgelehnt'
+    'REJECTED': 'Abgelehnt',
+    'WITHDRAWN': 'Zurückgezogen'
   }
   return texts[status] || status
 }

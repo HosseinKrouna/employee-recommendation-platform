@@ -25,7 +25,7 @@
 
 <script setup>
 
-import CvViewer from '~/components/ui/CvViewer.vue'
+import CvViewer from '~/components/CvViewer.vue'
 
 const selectedId = ref('')
 const recommendations = ref([])

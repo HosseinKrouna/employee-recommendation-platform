@@ -252,19 +252,36 @@ onMounted(() => {
     }
   })
 
-  // Load total recommendations
   loadStats()
 })
 
 const loadStats = async () => {
   try {
-    const { data } = await useFetch('/api/recommendations')
-    if (data.value) {
-      const recs = Array.isArray(data.value) ? data.value : data.value.recommendations || []
-      totalRecommendations.value = recs.length
+    const token = localStorage.getItem('token')
+        
+    const response = await fetch('/api/recommendations', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to load stats')
     }
+    
+    const data = await response.json()
+    
+    const allRecs = Array.isArray(data) 
+      ? data 
+      : (data.recommendations || [])
+    
+    totalRecommendations.value = allRecs.length
+    
   } catch (error) {
-    console.error('Error loading stats:', error)
   }
 }
+
+watch(() => route.path, () => {
+  loadStats()
+})
 </script>

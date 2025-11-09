@@ -293,7 +293,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import CvViewer from '~/components/ui/CvViewer.vue'
+import CvViewer from '~/components/CvViewer.vue'
 
 const route = useRoute()
 const router = useRouter()

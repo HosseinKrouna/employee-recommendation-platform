@@ -32,7 +32,7 @@ model Recommendation {
   candidatePhone    String?
   position          String
   department        String
-  skills            String[]
+  skills            Json
   experience        String               @db.Text
   notes             String?              @db.Text
   cvFileName        String?

@@ -85,50 +85,105 @@
 
       <!-- Skills -->
       <div>
-        <label class="block text-sm font-medium text-gray-300 mb-2 flex items-center">
-          <svg class="h-4 w-4 mr-2 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-          </svg>
-          Fähigkeiten * (mindestens eine erforderlich)
-        </label>
-        <div class="flex flex-wrap gap-2 mb-3" v-if="form.skills.length > 0">
-          <span
-            v-for="skill in form.skills"
-            :key="skill"
-            class="inline-flex items-center px-3 py-1.5 bg-indigo-500/20 text-indigo-300 rounded-lg text-sm font-medium border border-indigo-500/30"
-          >
-            {{ skill }}
-            <button
-              type="button"
-              @click.prevent="removeSkill(skill)"
-              class="ml-2 text-indigo-300 hover:text-indigo-100 font-bold"
-              :disabled="loading"
-            >
-              ×
-            </button>
+  <label class="block text-sm font-medium text-gray-300 mb-2 flex items-center">
+    <svg class="h-4 w-4 mr-2 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+    </svg>
+    Fähigkeiten * (mindestens eine erforderlich)
+  </label>
+
+  <!-- Hinzugefügte Skills Liste -->
+  <div class="space-y-3 mb-4" v-if="form.skills.length > 0">
+    <div
+      v-for="(skill, index) in form.skills"
+      :key="index"
+      class="p-4 bg-gray-800/50 border border-gray-600 rounded-lg group hover:border-purple-500/50 transition-all"
+    >
+      <div class="flex items-center justify-between mb-3">
+        <span class="font-semibold text-secondary text-lg">{{ skill.name }}</span>
+        <div class="flex items-center gap-3">
+          <span class="text-sm font-bold text-purple-400 bg-purple-500/20 px-3 py-1 rounded-full border border-purple-500/30">
+            {{ skill.level }}%
           </span>
-        </div>
-        <div class="flex gap-2">
-          <input
-            v-model="newSkill"
-            placeholder="Neue Fähigkeit hinzufügen und Enter drücken"
-            :disabled="loading"
-            @keydown.enter.prevent="addSkill"
-            class="flex-1 px-4 py-2.5 bg-gray-800 border border-gray-600 text-gray-100 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/50 focus:outline-none transition-all placeholder-gray-500"
-          />
           <button
             type="button"
-            @click.prevent="addSkill"
-            :disabled="loading || !newSkill.trim()"
-            class="px-6 py-2.5 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg transition-all font-medium border border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            @click.prevent="removeSkill(index)"
+            class="text-red-400 hover:text-red-300 font-bold text-xl"
+            :disabled="loading"
+            title="Skill entfernen"
           >
-            Hinzufügen
+            ×
           </button>
         </div>
-        <p class="text-xs text-gray-500 mt-2">
-          Hinzugefügte Skills: {{ form.skills.length }}
-        </p>
       </div>
+      
+      <!-- Progress Bar -->
+      <div class="relative w-full bg-gray-700/50 rounded-full h-2.5 overflow-hidden shadow-inner border border-gray-600">
+        <div 
+          class="absolute top-0 left-0 h-full rounded-full transition-all duration-300"
+          :class="getSkillColor(skill.level)"
+          :style="`width: ${skill.level}%`"
+        >
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Skill Hinzufügen Form -->
+  <div class="p-4 bg-gray-800/30 border border-gray-600 rounded-lg space-y-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-400 mb-2">Skill Name</label>
+      <input
+        v-model="newSkill.name"
+        placeholder="z.B. JavaScript, Python, Leadership..."
+        :disabled="loading"
+        @keydown.enter.prevent="addSkill"
+        class="w-full px-4 py-2.5 bg-gray-800 border border-gray-600 text-gray-100 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/50 focus:outline-none transition-all placeholder-gray-500"
+      />
+    </div>
+    
+    <div>
+      <div class="flex items-center justify-between mb-2">
+        <label class="block text-sm font-medium text-gray-400">Kompetenzlevel</label>
+        <span class="text-sm font-semibold text-purple-400 bg-purple-500/20 px-3 py-1 rounded-full border border-purple-500/30">
+          {{ newSkill.level }}%
+        </span>
+      </div>
+      
+      <input
+        v-model.number="newSkill.level"
+        type="range"
+        min="0"
+        max="100"
+        step="5"
+        :disabled="loading"
+        class="w-full h-3 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
+      />
+      
+      <div class="flex justify-between text-xs text-gray-500 mt-1">
+        <span>Anfänger</span>
+        <span>Fortgeschritten</span>
+        <span>Experte</span>
+      </div>
+    </div>
+
+    <button
+      type="button"
+      @click.prevent="addSkill"
+      :disabled="loading || !newSkill.name.trim()"
+      class="w-full px-6 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg transition-all font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+    >
+      <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+      </svg>
+      Skill hinzufügen
+    </button>
+  </div>
+
+  <p class="text-xs text-gray-500 mt-2">
+    Hinzugefügte Skills: {{ form.skills.length }}
+  </p>
+</div>
 
       <!-- Erfahrung -->
       <div>
@@ -279,12 +334,17 @@ const form = ref({
   candidatePhone: '',
   position: '',
   department: '',
-  skills: [],
+  skills: [], // Array von { name: string, level: number }
   experience: '',
   notes: ''
 })
 
-const newSkill = ref('')
+// newSkill Objekt 
+const newSkill = ref({
+  name: '',
+  level: 50
+})
+
 const uploadedFile = ref(null)
 const loading = ref(false)
 const uploading = ref(false)
@@ -303,19 +363,41 @@ const departmentOptions = [
   'Customer Success'
 ]
 
+// addSkill 
 const addSkill = () => {
-  const skill = newSkill.value.trim()
-  if (skill && !form.value.skills.includes(skill)) {
-    form.value.skills.push(skill)
-    newSkill.value = ''
+  const skillName = newSkill.value.name.trim()
+  if (!skillName) return
+  
+  // Check if skill already exists
+  const exists = form.value.skills.some(s => s.name.toLowerCase() === skillName.toLowerCase())
+  if (exists) {
+    alert('Dieser Skill wurde bereits hinzugefügt')
+    return
+  }
+  
+  form.value.skills.push({
+    name: skillName,
+    level: newSkill.value.level
+  })
+  
+  // Reset form
+  newSkill.value = {
+    name: '',
+    level: 50
   }
 }
 
-const removeSkill = (skill) => {
-  const index = form.value.skills.indexOf(skill)
-  if (index > -1) {
-    form.value.skills.splice(index, 1)
-  }
+// removeSkill mit Index
+const removeSkill = (index) => {
+  form.value.skills.splice(index, 1)
+}
+
+// Skill Color Helper für Progress Bars
+const getSkillColor = (level) => {
+  if (level >= 80) return 'bg-gradient-to-r from-green-500 to-emerald-500'
+  if (level >= 60) return 'bg-gradient-to-r from-blue-500 to-cyan-500'
+  if (level >= 40) return 'bg-gradient-to-r from-yellow-500 to-orange-500'
+  return 'bg-gradient-to-r from-red-500 to-pink-500'
 }
 
 const handleFileUpload = async (event) => {
@@ -396,7 +478,10 @@ const resetForm = () => {
     experience: '',
     notes: ''
   }
-  newSkill.value = ''
+  newSkill.value = {
+    name: '',
+    level: 50
+  }
   uploadedFile.value = null
   error.value = ''
   success.value = false
