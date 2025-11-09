@@ -127,10 +127,14 @@ export default defineEventHandler(async (event) => {
           employeeName: updatedRecommendation.recommendedByUser.firstName
         })
 
-        await sendEmail({
+      sendEmail({
           to: updatedRecommendation.recommendedByUser.email,
           subject: emailContent.subject,
           html: emailContent.html
+        }).then(() => {
+          console.log(`✅ Status update email sent to ${updatedRecommendation.recommendedByUser.email}`)
+        }).catch(err => {
+          console.error('Email send error:', err)
         })
 
         console.log(`✅ Status update email sent to ${updatedRecommendation.recommendedByUser.email}`)
@@ -147,7 +151,6 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     console.error('Status update error:', error)
     
-    // Re-throw if it's already a createError
     if (error.statusCode) {
       throw error
     }

@@ -1,4 +1,16 @@
 <template>
+<Modal
+  :is-open="modal.isOpen"
+  :type="modal.type"
+  :title="modal.title"
+  :message="modal.message"
+  :confirm-text="modal.confirmText"
+  :show-cancel="modal.showCancel"                    
+  :auto-close="modal.showCancel ? 0 : 3000"          
+  @confirm="handleModalConfirm"                      
+  @close="closeModal"
+/>
+
   <div class="page-container">
     <div class="page-header">
       <h1 class="heading-1">HR Dashboard</h1>
@@ -239,6 +251,8 @@ interface Recommendation {
   }
 }
 
+
+// FILTER-VARIABLEN
 const recommendations = ref<Recommendation[]>([])
 const loading = ref(true)
 const filterStatus = ref('')
@@ -247,13 +261,61 @@ const searchPosition = ref('')
 const sortOrder = ref('desc')
 const updatingStatus = ref<string | null>(null)
 const downloadingPdf = ref<string | null>(null)
-
-// NEUE FILTER-VARIABLEN
 const filterPosition = ref('')
 const filterRecommendedBy = ref('')
 const dateFrom = ref('')
 const dateTo = ref('')
 
+// Modal State
+const modal = ref({
+  isOpen: false,
+  type: 'success' as 'success' | 'error' | 'warning' | 'info',
+  title: '',
+  message: '',
+  confirmText: 'OK',
+  showCancel: false,                         
+  onConfirm: null as (() => void) | null     
+})
+
+const getStatusText = (status: string) => {
+  const texts: Record<string, string> = {
+    'SUBMITTED': 'Eingereicht',
+    'IN_REVIEW': 'In Prüfung',
+    'APPROVED': 'Genehmigt',
+    'REJECTED': 'Abgelehnt',
+    'WITHDRAWN': 'Zurückgezogen'
+  }
+  return texts[status] || status
+}
+
+const showModal = (
+  type: 'success' | 'error' | 'warning' | 'info', 
+  title: string, 
+  message: string,
+  showCancel = false,       
+  onConfirm?: () => void  
+) => {
+  modal.value = {
+    isOpen: true,
+    type,
+    title,
+    message,
+    confirmText: showCancel ? 'Ja' : 'OK', 
+    showCancel,                               
+    onConfirm: onConfirm || null          
+  }
+}
+
+const closeModal = () => {
+  modal.value.isOpen = false
+}
+
+const handleModalConfirm = () => {
+  if (modal.value.onConfirm) {
+    modal.value.onConfirm()
+  }
+  closeModal()
+}
 // COMPUTED FÜR UNIQUE POSITIONEN
 const uniquePositions = computed(() => {
   const positions = recommendations.value.map(r => r.position)
@@ -384,44 +446,65 @@ const fetchRecommendations = async () => {
   }
 }
 
+
+
 const changeStatus = async (id: string, event: Event) => {
   const select = event.target as HTMLSelectElement
   const newStatus = select.value
   
   if (!newStatus) return
 
-  updatingStatus.value = id
+  // Zeige erst Confirmation Modal
+  showModal(
+    'warning',
+    'Status ändern?',
+    `Möchtest du den Status wirklich auf "${getStatusText(newStatus)}" ändern?`,
+    true, // showCancel = true
+    async () => {
+      // NUR ausgeführt wenn User "Ja" klickt
+      updatingStatus.value = id
 
-  try {
-    const token = localStorage.getItem('token')
-    const response = await fetch(`/api/recommendations/${id}/status`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ status: newStatus })
-    })
+      try {
+        const token = localStorage.getItem('token')
+        const response = await fetch(`/api/recommendations/${id}/status`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ status: newStatus })
+        })
 
-    if (!response.ok) {
-      throw new Error('Fehler beim Aktualisieren')
+        if (!response.ok) {
+          throw new Error('Fehler beim Aktualisieren')
+        }
+
+        const index = recommendations.value.findIndex(r => r.id === id)
+        if (index !== -1) {
+          recommendations.value[index].status = newStatus
+        }
+
+        // Success Modal
+        showModal(
+          'success',
+          'Status aktualisiert',
+          `Der Status wurde erfolgreich auf "${getStatusText(newStatus)}" geändert.`
+        )
+
+        select.value = ''
+      } catch (error) {
+        console.error('Error updating status:', error)
+        showModal(
+          'error',
+          'Fehler',
+          'Der Status konnte nicht aktualisiert werden. Bitte versuche es erneut.'
+        )
+        select.value = ''
+      } finally {
+        updatingStatus.value = null
+      }
     }
-
-    // Update local data
-    const index = recommendations.value.findIndex(r => r.id === id)
-    if (index !== -1) {
-      recommendations.value[index].status = newStatus
-    }
-
-    // Reset select
-    select.value = ''
-  } catch (error) {
-    console.error('Error updating status:', error)
-    alert('Fehler beim Aktualisieren des Status')
-    select.value = ''
-  } finally {
-    updatingStatus.value = null
-  }
+  )
 }
 
 const downloadCv = async (id: string, candidateName: string) => {
@@ -446,11 +529,25 @@ const downloadCv = async (id: string, candidateName: string) => {
     a.click()
     window.URL.revokeObjectURL(url)
     document.body.removeChild(a)
+    
+    // Success Modal
+    showModal(
+      'success',
+      'CV heruntergeladen',
+      `Der Lebenslauf von ${candidateName} wurde erfolgreich heruntergeladen.`
+    )
   } catch (error) {
     console.error('Error downloading CV:', error)
-    alert('Fehler beim Herunterladen des CVs')
+    
+    // Error Modal
+    showModal(
+      'error',
+      'Download fehlgeschlagen',
+      'Das CV konnte nicht heruntergeladen werden. Bitte versuche es erneut.'
+    )
   }
 }
+
 
 const downloadPdf = async (id: string, candidateName: string) => {
   downloadingPdf.value = id
@@ -476,13 +573,27 @@ const downloadPdf = async (id: string, candidateName: string) => {
     a.click()
     window.URL.revokeObjectURL(url)
     document.body.removeChild(a)
+    
+    // Success Modal
+    showModal(
+      'success',
+      'PDF erstellt',
+      `Die Empfehlung für ${candidateName} wurde erfolgreich als PDF heruntergeladen.`
+    )
   } catch (error) {
     console.error('Error downloading PDF:', error)
-    alert('Fehler beim Herunterladen des PDFs')
+    
+    // Error Modal 
+    showModal(
+      'error',
+      'PDF-Erstellung fehlgeschlagen',
+      'Das PDF konnte nicht erstellt werden. Bitte versuche es erneut.'
+    )
   } finally {
     downloadingPdf.value = null
   }
 }
+
 
 const getStatusBadgeClass = (status: string) => {
   const classes: Record<string, string> = {
@@ -493,17 +604,6 @@ const getStatusBadgeClass = (status: string) => {
     'WITHDRAWN': 'badge badge-status-withdrawn'
   }
   return classes[status] || 'badge'
-}
-
-const getStatusText = (status: string) => {
-  const texts: Record<string, string> = {
-    'SUBMITTED': 'Eingereicht',
-    'IN_REVIEW': 'In Prüfung',
-    'APPROVED': 'Genehmigt',
-    'REJECTED': 'Abgelehnt',
-    'WITHDRAWN': 'Zurückgezogen'
-  }
-  return texts[status] || status
 }
 
 const formatDate = (date: string) => {
